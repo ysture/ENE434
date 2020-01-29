@@ -3,6 +3,8 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime
+import geopandas as gpd
+import seaborn as sns
 
 oil_fields = pd.read_csv("http://jmaurit.github.io/analytics/labs/data/oil_fields_cross.csv")
 oil_fields = oil_fields.dropna()
@@ -54,7 +56,6 @@ Actually finding and accessing interesting data you want can be challenging. Imp
 a)
 Go to the data portion of the Norwegian Petrioleum Directorate
 '''
-inv = pd.read_csv()
 
 '''
 b)
@@ -65,13 +66,76 @@ The tabs at the top indicate the different types of data that is available by le
 c)
 Once you have downloaded the data, import the data into r using the read_csv() command.
 '''
-
+inv = pd.read_csv('https://raw.githubusercontent.com/yggarshan/ENE434/master/field_investment_yearly.csv', error_bad_lines=False)
+# remove all observations where investments is zero
+inv = inv[inv['prfInvestmentsMillNOK'] != 0]
+inv.sort_values(by='prfInvestmentsMillNOK')
 '''
 d)
 If there is a date variable, format that variable as a date (if read_csv() hasn’t automatically done so already)
 '''
-
+# inv['prfYear'] = pd.to_datetime(inv['prfYear'], format='%Y')
 '''
 e)
 Plot the data in a meaningful way. Interpret the plot. Is there anything puzling about the data.
 '''
+df = pd.merge(left=inv, right=oil_fields.loc[:,['name', 'lon','lat']],
+               left_on=inv.prfInformationCarrier,
+               right_on=oil_fields.name,
+               how='left')
+
+df_north = df[df.lat > 63] # north of Bodø
+df_mid = df[(df.lat > 60) & (df.lat<=63)] # north of Bergen and south of Bodø
+df_south = df[df.lat < 60] # south of Bergen
+
+# Scatterplots of regions
+plt.scatter(x=df_north['prfYear'], y=df_north['prfInvestmentsMillNOK'],
+            alpha=0.3, c='blue', label='North')
+plt.scatter(x=df_mid['prfYear'], y=df_mid['prfInvestmentsMillNOK'],
+            alpha=0.3, c='green', label='Mid')
+plt.scatter(x=df_south['prfYear'], y=df_south['prfInvestmentsMillNOK'],
+            alpha=0.3, c='orange', label='South')
+plt.title('Investments at the NCS')
+plt.ylabel('Investments')
+plt.xlabel('Year')
+plt.legend()
+plt.show()
+
+# Density plots of regions
+sns.distplot(df_north['prfInvestmentsMillNOK'], hist = False, kde = True,
+             kde_kws = {'linewidth': 3}, color='blue',
+             label = 'North')
+sns.distplot(df_mid['prfInvestmentsMillNOK'], hist = False, kde = True,
+             kde_kws = {'linewidth': 3}, color='green',
+             label = 'Mid')
+sns.distplot(df_south['prfInvestmentsMillNOK'], hist = False, kde = True,
+             kde_kws = {'linewidth': 3}, color='orange',
+             label = 'South')
+plt.show()
+
+# Creating map where size of bubbles show size of investments
+world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres'))
+nor = world[world.name == "Norway"]
+nor_geom = world.loc[nor_index, 'geometry']
+
+world.plot()
+plt.show()
+# plot norway
+nor.plot()
+plt.show()
+
+# plot oil fields
+from shapely.geometry import Point, Polygon
+import gmaps
+geometry = [Point(xy) for xy in zip(df['lon'], df['lat'])]
+
+base = nor.plot(color='white', edgecolor='black')
+geo_df = gpd.GeoDataFrame(df,
+                          crs='crs',
+                          geometry=geometry)
+geo_df.plot(ax=base)
+plt.show()
+
+fig,ax = plt.subplots(figsize = (8,6))
+df.plot(ax=base)
+plt.show()
