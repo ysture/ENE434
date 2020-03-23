@@ -143,33 +143,33 @@ res3.summary()
 lj = acorr_ljungbox(res3.resid, lags=10)
 lj[1]
 
-def forecast_plot(arima_mod, forecasts=12, outer_interval=0.95, inner_interval=0.8):
-    ma_x = arima_mod.k_ma
-    ar_x = arima_mod.k_ar
-    try:
-        diff_x = arima_mod.k_diff
-    except AttributeError:
-    diff_x = 0
+def forecast_plot(dataframe, arima_mod, forecasts=12, outer_interval=0.95, inner_interval=0.8):
     # Forecast ("The result of the forecast() function is an array containing the forecast value, the standard error of the forecast, and the confidence interval information.")
     res = arima_mod.fit()
-    f, std, inner = res.forecast(forecasts, alpha=1-inner_interval)
-    outer = res.forecast(forecasts, alpha=1-outer_interval)[2]
-    f_x = list(pd.date_range(start='1/1/2019', periods=12, freq='MS'))
-    f_x = pd.Series([x.to_datetime64() for x in f_x])
+
+    f = res.get_forecast(forecasts).summary_frame()
+    # Forecast index
+    f_ix = f.index
+    # Prediction mean
+    pred_mean = f['mean']
+    # Confidence intervals
+    under_outer = res.get_forecast(forecasts).conf_int(alpha=1-outer_interval).iloc[:,0]
+    over_outer = res.get_forecast(forecasts).conf_int(alpha=1-outer_interval).iloc[:,1]
+    under_inner = res.get_forecast(forecasts).conf_int(alpha=1-inner_interval).iloc[:,0]
+    over_inner = res.get_forecast(forecasts).conf_int(alpha=1-inner_interval).iloc[:,1]
 
     # res3.predict()
     fig, ax = plt.subplots(figsize=(8,6))
-    ax.plot(dk1price_ts['date'], dk1price_ts['DK1_price'], color='black', label='Training set')
-    ax.plot(f_x, f, color='blue', label='Forecast')
+    ax.plot(dataframe.index, dataframe, color='black', label='Training set')
+    ax.plot(f_ix, pred_mean, color='blue', label='Forecast')
     # Confidence intervals
-    under_outer = [x[0] for x in outer]
-    over_outer = [x[1] for x in outer]
-    under_inner = [x[0] for x in inner]
-    over_inner = [x[1] for x in inner]
-    plt.fill_between(f_x, under_outer, over_outer, color='b', alpha=0.2, label='{}% confidence interval'.format(int(outer_interval*100)))
-    plt.fill_between(f_x, under_inner, over_inner, color='b', alpha=0.4, label='{}% confidence interval'.format(int(inner_interval*100)))
-    k = 0 # Number of differencing
-    plt.title('Forecasts from ARIMA({ar},{i},{ma})'.format(ar=ar_x, i=diff_x, ma=ma_x),
+    plt.fill_between(f_ix, under_outer, over_outer, color='b', alpha=0.2, label='{}% confidence interval'.format(int(outer_interval*100)))
+    plt.fill_between(f_ix, under_inner, over_inner, color='b', alpha=0.4, label='{}% confidence interval'.format(int(inner_interval*100)))
+
+
+    order = arima_mod.order
+    seas_order = arima_mod.seasonal_order
+    plt.title('Forecasts from ARIMA({}{})'.format(order, seas_order),
               fontdict={'size':19}, loc='left')
     plt.legend(loc='upper center')
     plt.show()
@@ -219,82 +219,57 @@ cons_dk = cons[['DK']]
 cons_dk.index = cons['date']
 cons_dk = cons_dk.asfreq('d')
 
-'''
+# Creating differenced and seasonal differenced time series
+cons_dk_diff = cons_dk.diff()
+cons_dk_seasdiff = cons_dk.diff(7)
+
 # Arima Forecasting
 cons_dk.plot()
 plt.title('DK Consumption 2019')
 plt.show()
-adfuller(cons_dk.diff().dropna())
 
-fig, axes = plt.subplots(2,1)
-plot_acf(cons_dk, ax=axes[0])
-plot_pacf(cons_dk, ax=axes[1])
+cons_dk_diff.plot()
+plt.title('DK Consumption 2019 \n First order difference')
 plt.show()
 
-fig, axes = plt.subplots(2,1)
-plot_acf(cons_dk.diff().dropna(), ax=axes[0])
-plot_pacf(cons_dk.diff().dropna(), ax=axes[1])
-plt.show()
-
-fig, axes = plt.subplots(2,1)
-plot_acf(cons_dk.dropna(), ax=axes[0])
-plot_pacf(cons_dk.diff(seasonal_diff=1, seasonal_periods=7).dropna(), ax=axes[1])
+cons_dk_seasdiff.plot()
+plt.title('DK Consumption 2019 \n First order seasonal difference')
 plt.show()
 
 
-sfit1 = ARIMA(cons_dk, order=(1,0,1), seasonal_order = (0,1,2,7))
+# ADFuller original timeseries
+print('P-value of ADFuller test: {:.6f}'.format(adfuller(cons_dk)[1]))
+# ADFuller first-order differenced timeseries
+print('P-value of ADFuller test: {:.6f}'.format(adfuller(cons_dk_diff.dropna())[1]))
+# ADFuller first-order seasonally differenced timeseries
+print('P-value of ADFuller test: {:.6f}'.format(adfuller(cons_dk_seasdiff.dropna())[1]))
+
+# Plotting ACF
+fig, axes = plt.subplots(2,3, sharex=True)
+plot_acf(cons_dk, ax=axes[0,0], title='Autocorrelaction \n Ordinary')
+plot_pacf(cons_dk, ax=axes[1,0], title='Partial \n Ordinary')
+plot_acf(cons_dk_diff.dropna(), ax=axes[0,1], title='Autocorrelaction \n Differenced (1)')
+plot_pacf(cons_dk_diff.dropna(), ax=axes[1,1], title='Partial \n Difference (1)')
+plot_acf(cons_dk_seasdiff.dropna(), ax=axes[0,2], title='Autocorrelaction \n Seasonal (1)')
+plot_pacf(cons_dk_seasdiff.dropna(), ax=axes[1,2], title='Partial \n Seasonal (1)')
+plt.show()
+
+# ADF and partial autocorrelation plots suggest that seasonal differencing is best (ADF suggest normal, but pacf plots otherwise)
+    # End up with ARIMA(1,0,2)(2,1,0)[7] as the best model, as there are two significant seasonal lags in the
+        # pacf plot as well as three significant lags in the ACF plot.
+
+# Creating forecast
+sfit1 = ARIMA(cons_dk, order=(1,0,2), seasonal_order = (2,1,0,7))
 res = sfit1.fit()
 res.summary()
+
+# Plotting forecast
+sfit1 = ARIMA(cons_dk, order=(1,0,2), seasonal_order = (2,1,0,7))
+forecast_plot(cons_dk, sfit1)
+
+
 
 
 # Trying with auto arima
 model = pm.auto_arima(cons_dk, seasonal=True, m=7, suppress_warnings=True)
 '''
-
-# Trying with own auto ARIMA from (https://stackoverflow.com/questions/56802974/auto-arima-r-and-python-suggest-different-arima-models-for-same-data-why)
-# import package
-import itertools
-import warnings
-
-# Define the p, d and q parameters to take any value between 0 and 2
-p = d = q = range(0, 3)
-
-# Generate all different combinations of p, q and q triplets
-pdq = list(itertools.product(p, d, q))
-
-# Generate all different combinations of seasonal p, q and q triplets
-seasonal_freq = 7
-seasonal_pdq = [(x[0], x[1], x[2], seasonal_freq) for x in
-                list(itertools.product(p, d, q))]
-
-print('Examples of parameter combinations for Seasonal ARIMA...')
-print('SARIMAX: {} x {}'.format(pdq[1], seasonal_pdq[1]))
-print('SARIMAX: {} x {}'.format(pdq[1], seasonal_pdq[2]))
-print('SARIMAX: {} x {}'.format(pdq[2], seasonal_pdq[3]))
-print('SARIMAX: {} x {}'.format(pdq[2], seasonal_pdq[4]))
-
-warnings.filterwarnings("ignore") # specify to ignore warning messages
-
-combinations = len([(x,y) for x in pdq for y in seasonal_pdq])
-
-arima_models = {}
-for i in range(combinations):
-    arima_models[i] = ''
-i = 0
-for param in pdq:
-    for param_seasonal in seasonal_pdq:
-        i += 1
-        try:
-            mod = sm.tsa.statespace.SARIMAX(cons_dk,
-                                            order=param,
-                                            seasonal_order=param_seasonal,
-                                            enforce_stationarity=False,
-                                            enforce_invertibility=False)
-
-            results = mod.fit(disp=0)
-            arima_models[i]['Ordinary order'] = param
-            arima_models[i]['Seasonal order'] = param_seasonal
-            arima_models[i]['AIC'] = results.aic
-            print('ARIMA{}x{}{} - AIC:{}'.format(param, param_seasonal, seasonal_freq, results.aic))
-        except:
-            continue
