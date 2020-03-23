@@ -1,4 +1,4 @@
-
+# Lab 1
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -129,6 +129,15 @@ from shapely.geometry import Point, Polygon
 import gmaps
 geometry = [Point(xy) for xy in zip(df['lon'], df['lat'])]
 
+gmaps.configure(api_key='AIzaSyBrwck7cRAXXnEPiePL1k5YJnqUstRo0xE')
+
+norway_coord = (67, 15)
+fig = gmaps.figure(center=norway_coord, zoom_level=12)
+fig.show()
+
+fig = gmaps.figure()
+fig
+
 base = nor.plot(color='white', edgecolor='black')
 geo_df = gpd.GeoDataFrame(df,
                           crs='crs',
@@ -139,3 +148,31 @@ plt.show()
 fig,ax = plt.subplots(figsize = (8,6))
 df.plot(ax=base)
 plt.show()
+
+
+'''
+LAB2
+'''
+df = pd.read_csv("https://jmaurit.github.io/anvendt_macro/data/adf.csv")
+df.shape
+df.head()
+df.drop('Unnamed: 0', axis=1, inplace=True)
+
+new_columns= ["working_capital", "working_capital_perc", "fixed_assets", "long_debt",
+              "NACE_desc", "NACE_code", "profit", "other_fin_instr", "employees", "depreciation",
+              "change_inventories", "operating_income", "operating_costs", "operating_result",
+              "equity", "total_assets", "org_type", "principality", "debt", "inv", "cash", "municipality",
+              "corp_accounts", "short_debt", "accounts_receivable", "director", "liquidity", "wage_costs",
+              "profitability", "current_assets", "pretax_profit", "orgnr", "audit_remarks", "audit_komments",
+              "audit_explanation_txt", "audit_explanation", "sales_revenue", "solidity", "status", "founded_date",
+              "dividend", "currency_code", "supply_cost", "inventory", "year", "name"]
+
+df.columns = new_columns
+
+# Make sure NACE codes are strings
+#df.dtypes
+df['NACE_code'] = df['NACE_code'].to_string()
+new = list(df.loc[:100,"NACE_code"]).str.split(pat=".", expand=True)
+df["NACE_code_1"]= new[0]
+df["NACE_code_2"]= new[1]
+df
