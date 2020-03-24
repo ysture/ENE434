@@ -10,6 +10,7 @@ from statsmodels.tsa.arima.model import ARIMA
 from statsmodels.stats.diagnostic import acorr_ljungbox
 from statsmodels.tsa._stl import STL
 from statsmodels.tsa.statespace.sarimax import SARIMAX
+from arch import arch_model
 import pmdarima as pm
 from scipy import stats
 import matplotlib.gridspec as gridspec
@@ -17,7 +18,7 @@ import matplotlib.dates as mdates
 import os
 
 # Load ets data
-ets = pd.read_csv("eua-price.csv")
+ets = pd.read_csv("https://raw.githubusercontent.com/ysture/ENE434/master/Data/eua-price.csv")
 ets.Price = (ets.Date.astype(str) + '.' + ets.Price.astype(str)).astype(float)
 ets.Date = ets.index
 ets.reset_index(drop=True, inplace=True)
@@ -99,12 +100,6 @@ res1.summary() # MA Coefficient approximately same as in class
 res2.summary() # MA Coefficient same as in class
 
 def residual_plot(arima_mod):
-    ma_x = arima_mod.k_ma
-    ar_x = arima_mod.k_ar
-    try:
-        diff_x = arima_mod.k_diff
-    except AttributeError:
-        diff_x = 0
     result = arima_mod.fit()
     residuals = result.resid
     # Creating residual plot (similar to the one in class)
@@ -112,7 +107,9 @@ def residual_plot(arima_mod):
     #fig.subplots_adjust(wspace=0.05)
     ax1 = plt.subplot2grid((2, 2), (0, 0), colspan=2)
     ax1.plot(residuals)
-    title = ('Residuals from ARIMA({ar},{i},{ma})'.format(ar=ar_x, ma=ma_x,i=diff_x))
+    order = arima_mod.order
+    seasorder = arima_mod.seasonal_order
+    title = ('Residuals from ARIMA{}{}'.format(order, seasorder))
     ax1.set_title(title, fontdict={'size':20}, loc='left')
     ax2 = plt.subplot2grid((2, 2), (1, 0), colspan=1)
     plot_acf(residuals, ax=ax2, zero=False)
@@ -214,11 +211,16 @@ plt.show()
 '''
 
 #### Assignment exercises
-## 1)
+### 1)
 cons_dk = cons[['DK']]
 cons_dk.index = cons['date']
 cons_dk = cons_dk.asfreq('d')
 
+
+## 1.2 Comparing Norwegian and Danish consumption
+
+
+## 1.2 Forecasting Danish consumption
 # Creating differenced and seasonal differenced time series
 cons_dk_diff = cons_dk.diff()
 cons_dk_seasdiff = cons_dk.diff(7)
@@ -255,21 +257,48 @@ plot_pacf(cons_dk_seasdiff.dropna(), ax=axes[1,2], title='Partial \n Seasonal (1
 plt.show()
 
 # ADF and partial autocorrelation plots suggest that seasonal differencing is best (ADF suggest normal, but pacf plots otherwise)
-    # End up with ARIMA(1,0,2)(2,1,0)[7] as the best model, as there are two significant seasonal lags in the
-        # pacf plot as well as three significant lags in the ACF plot.
+# End up with ARIMA(1,0,2)(2,1,0)[7] as the best model, as there are two significant seasonal lags in the
+# pacf plot as well as three significant lags in the ACF plot.
 
 # Creating forecast
 sfit1 = ARIMA(cons_dk, order=(1,0,2), seasonal_order = (2,1,0,7))
-res = sfit1.fit()
+res = sfit1.fit(method='innovations_mle', includes_fixed=True)
+res.predict()
+res2 = sfit1.fit(transformed=False)
 res.summary()
 
+# Model diagnostics
+res.plot_diagnostics(lags=25)
+plt.show()
+
+# Trying to get fitted values to correspond to R's fitted values
+fig = plt.figure()
+plt.plot(cons_dk, label='ts')
+plt.plot(res.predict(dynamic=False), label='Not Dynamic')
+plt.plot(res.predict(dynamic=True), label='Dynamic')
+dyn = 1
+plt.plot(res.predict(dynamic=dyn), label='Dynamic = {}'.format(dyn), linestyle="--")
+plt.legend(loc='best')
+plt.show()
+
+print(res.predict.__doc__)
 # Plotting forecast
 sfit1 = ARIMA(cons_dk, order=(1,0,2), seasonal_order = (2,1,0,7))
 forecast_plot(cons_dk, sfit1)
 
 
 
+res.plot_predict()
 
-# Trying with auto arima
-model = pm.auto_arima(cons_dk, seasonal=True, m=7, suppress_warnings=True)
-'''
+### 2) Choose prices for a certain country for 2019. Model the dynamics of power prices, including for checking for and modeling conditional variance. Create a forecast for 30 days.
+## Daily elspot prices in Lativa for 2019
+eur = pd.read_csv('https://raw.githubusercontent.com/ysture/ENE434/master/Data/elspot-prices_2019_daily_eur.csv', encoding='unicode_escape')
+ix = eur['Unnamed: 0'].str.replace('/','-')
+eur.index = pd.to_datetime(ix, format='%d-%m-%Y')
+lt = eur[['LT']]
+
+
+# define ARCH model
+model = arch_model(lt, mean='Zero', vol='GARCH', p=15)
+model.fit(update_freq = 5)
+
