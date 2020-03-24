@@ -166,7 +166,7 @@ def forecast_plot(dataframe, arima_mod, forecasts=12, outer_interval=0.95, inner
 
     order = arima_mod.order
     seas_order = arima_mod.seasonal_order
-    plt.title('Forecasts from ARIMA({}{})'.format(order, seas_order),
+    plt.title('Forecasts from ARIMA{}{}'.format(order, seas_order),
               fontdict={'size':19}, loc='left')
     plt.legend(loc='upper center')
     plt.show()
@@ -182,33 +182,31 @@ forecast_plot(fit3)
 cons = pd.read_csv("http://jmaurit.github.io/analytics/labs/data/consumption-per-country_2019_daily.csv", delimiter=';')
 cons.date = pd.to_datetime(cons.date, format='%d/%m/%Y')
 
-cons_ts = cons[['NO']]
-cons_ts.index = cons['date']
-cons_ts = cons_ts.asfreq('d')
+
+cons_no = cons[['NO']]
+cons_no.index = cons['date']
+cons_no = cons_no.asfreq('d')
 # STL decomposition
-stl = STL(cons_ts, period=7, seasonal=51)
+stl = STL(cons_no, period=7, seasonal=51)
 res = stl.fit()
 res.plot()
 plt.show()
 
 # Seasonal ARIMA forecasting
-sfit1_x = SARIMAX(cons_ts, order=(1,0,1), seasonal_order = (0,1,1,7))
-res_x = sfit1_x.fit()
-res_x.summary()
-
-sfit1 = ARIMA(cons_ts, order=(1,0,1), seasonal_order = (0,1,1,7))
-res = sfit1.fit()
+sfit1 = ARIMA(cons_no, order=(1,0,1), seasonal_order = (0,1,1,7))
+res = sfit1.fit(method='innovations_mle')
 res.summary()
 
 '''
-# Plot residuals. LOOK STRANGE
+# Plot residuals. RESIDUAL PLOTS LOOK STRANGE
 residual_plot(sfit1)
 
+'''
 # Plot forecast
-plt.plot(cons['NO'][-100:], color='black')
+fig = plt.figure()
+plt.plot(cons_no, color='black')
 plt.plot(res.forecast(30), color='blue')
 plt.show()
-'''
 
 #### Assignment exercises
 ### 1)
@@ -218,6 +216,12 @@ cons_dk = cons_dk.asfreq('d')
 
 
 ## 1.2 Comparing Norwegian and Danish consumption
+fig = plt.figure()
+plt.plot(cons_dk, label='Denmark', color='Red')
+plt.plot(cons_no, label='Norway', color='Blue')
+plt.title('2019 Energy Consumption in Denmark and Norway')
+plt.legend(loc='best')
+plt.show()
 
 
 ## 1.2 Forecasting Danish consumption
@@ -262,7 +266,7 @@ plt.show()
 
 # Creating forecast
 sfit1 = ARIMA(cons_dk, order=(1,0,2), seasonal_order = (2,1,0,7))
-res = sfit1.fit(method='innovations_mle', includes_fixed=True)
+res = sfit1.fit(method='innovations_mle')
 res.predict()
 res2 = sfit1.fit(transformed=False)
 res.summary()
@@ -273,22 +277,17 @@ plt.show()
 
 # Trying to get fitted values to correspond to R's fitted values
 fig = plt.figure()
-plt.plot(cons_dk, label='ts')
-plt.plot(res.predict(dynamic=False), label='Not Dynamic')
-plt.plot(res.predict(dynamic=True), label='Dynamic')
-dyn = 1
-plt.plot(res.predict(dynamic=dyn), label='Dynamic = {}'.format(dyn), linestyle="--")
+observations_skipped = 10
+predictions = res.predict(dynamic=False)[observations_skipped:]
+plt.plot(cons_dk.index[observations_skipped:], cons_dk[observations_skipped:], label='ts')
+plt.plot(predictions.index, predictions, label='Fitted values', linestyle="--")
 plt.legend(loc='best')
 plt.show()
 
-print(res.predict.__doc__)
 # Plotting forecast
 sfit1 = ARIMA(cons_dk, order=(1,0,2), seasonal_order = (2,1,0,7))
 forecast_plot(cons_dk, sfit1)
 
-
-
-res.plot_predict()
 
 ### 2) Choose prices for a certain country for 2019. Model the dynamics of power prices, including for checking for and modeling conditional variance. Create a forecast for 30 days.
 ## Daily elspot prices in Lativa for 2019
@@ -297,8 +296,8 @@ ix = eur['Unnamed: 0'].str.replace('/','-')
 eur.index = pd.to_datetime(ix, format='%d-%m-%Y')
 lt = eur[['LT']]
 
-
+'''
 # define ARCH model
 model = arch_model(lt, mean='Zero', vol='GARCH', p=15)
 model.fit(update_freq = 5)
-
+'''
