@@ -51,6 +51,7 @@ import cartopy.feature as cfeature
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import cartopy.io.shapereader as shpreader
+import geopandas as gpd
 
 proj = ccrs.Mercator()
 coord_1 = (58.745, 5.804)
@@ -121,6 +122,7 @@ fig.tight_layout()
 plt.show()
 
 # Investigation of Natural Earth (https://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-1-states-provinces/) data
+# Remember to place [] around geometry object when plotting maps using shapesfiles and cartopy
 def print_regions_and_provinces(countries):
     for record in shp.records():
         country = record.attributes['admin']
@@ -141,6 +143,8 @@ shape_county = 'norway_shape/NOR_adm_shp/NOR_adm1'
 shape_princ = 'norway_shape/kartverket/kommuner/kommuner'
 
 shape_country_y = 'C:/Users/Yngve/Google Drive/Skolerelatert/NHH/Master/ENE434/Geodata/Shapefiles/NOR_adm0.shp'
+shape_fylke_y = 'C:/Users/Yngve/Google Drive/Skolerelatert/NHH/Master/ENE434/Geodata/Shapefiles/NOR_adm1.shp'
+shape_kommune_y = 'C:/Users/Yngve/Google Drive/Skolerelatert/NHH/Master/ENE434/Geodata/Shapefiles/NOR_adm2.shp'
 
 
 #### kommuner
@@ -148,17 +152,11 @@ shape_country_y = 'C:/Users/Yngve/Google Drive/Skolerelatert/NHH/Master/ENE434/G
 reader_norway = shpreader.Reader(shape_country_y)
 norway = reader_norway.geometries()
 norway_geom = next(norway)
-norway_rec = reader_norway.records()
-
-#
-next(norway_rec)
-
-#kommuner
-reader_princ = shpreader.Reader(shape_princ)
-princ = reader_princ.geometries()
-princ_rec = reader_princ.records()
-rec = next(princ_rec)
-rec
+# Fylker
+reader_fylke = shpreader.Reader(shape_fylke_y)
+# Kommuner
+reader_kommune = shpreader.Reader(shape_kommune_y)
+reader_norway.records()
 
 # Create plot
 subplot_kw = dict(projection=ccrs.Mercator())
@@ -167,12 +165,49 @@ fig, ax = plt.subplots(figsize=(12, 15),
                        subplot_kw=subplot_kw)
 ax.set_extent((2, 32.0, 56, 71))
 ax.add_geometries(norway_geom, ccrs.PlateCarree(), facecolor="white", edgecolor='black')
+
+'''
+# Add fylker
+for princ, rec in zip(reader_fylke.geometries(), reader_fylke.records()):
+    ax.add_geometries(princ, ccrs.PlateCarree(), facecolor="lightGrey", edgecolor='black', alpha=1)
+plt.show()
+'''
+
+# Add municipalities (shapefiles, before 2020)
+for kommune, rec in zip(reader_kommune.geometries(), reader_kommune.records()):
+    if rec.attributes['NAME_2'] in ['Forsand', 'Sandnes']:
+        print('Yes')
+        color = 'lightgreen'
+    else:
+        color = 'lightGrey'
+    ax.add_geometries([kommune], ccrs.PlateCarree(), facecolor=color, edgecolor='black', alpha=1)
+fig.tight_layout()
 plt.show()
 
-# Add regions
+# Add municipalities (POSTgis, current from 2020)
+import fiona
+import geopandas as gpd
+from osgeo import ogr
 
-#%%
+gdb_file = 'C:/Users/Yngve/Google Drive/Skolerelatert/NHH/Master/ENE434/Geodata/Basisdata_0000_Norge_3035_Kommuner_FGDB'
+# Get all the layers from the .gdb file
+driver = ogr.GetDriverByName(gdb_file)
+layers = fiona.listlayers(gdb_file)
 
-for princ, rec in zip(reader_princ.geometries(), reader_princ.records()):
-    ax.add_geometries(princ, ccrs.PlateCarree(), facecolor="lightGrey", edgecolor='black', alpha=.3)
-plt.show()
+for layer in layers:
+    gdf = gpd.read_file(gdb_file,layer=layer)
+    # Do stuff with the gdf
+
+# GeoNorge API for kommunereform
+import requests
+baseurl = 'https://ws.geonorge.no/kommunereform/v1/'
+r = requests.get(baseurl)
+r.status_code
+
+url = 'https://ws.geonorge.no/kommunereform/v1/endringer/0105'
+r = requests.get(url)
+r.status_code
+r.reason
+j = r.json()
+
+# Create df of all municipality changes
