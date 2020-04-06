@@ -140,42 +140,36 @@ shape_country = 'norway_shape/NOR_adm_shp/NOR_adm0'
 shape_county = 'norway_shape/NOR_adm_shp/NOR_adm1'
 shape_princ = 'norway_shape/kartverket/kommuner/kommuner'
 
+shape_country_y = 'C:/Users/Yngve/Google Drive/Skolerelatert/NHH/Master/ENE434/Geodata/Shapefiles/NOR_adm0.shp'
+
+
 #### kommuner
 #Norway boundary
-reader_norway = shpreader.Reader(shape_country)
+reader_norway = shpreader.Reader(shape_country_y)
 norway = reader_norway.geometries()
 norway_geom = next(norway)
 norway_rec = reader_norway.records()
 
-#%%
-
+#
 next(norway_rec)
-
-#%%
 
 #kommuner
 reader_princ = shpreader.Reader(shape_princ)
-
 princ = reader_princ.geometries()
 princ_rec = reader_princ.records()
-
-#%%
-
 rec = next(princ_rec)
 rec
 
-#%%
-
+# Create plot
 subplot_kw = dict(projection=ccrs.Mercator())
 
 fig, ax = plt.subplots(figsize=(12, 15),
                        subplot_kw=subplot_kw)
 ax.set_extent((2, 32.0, 56, 71))
-
-
-#%%
-
 ax.add_geometries(norway_geom, ccrs.PlateCarree(), facecolor="white", edgecolor='black')
+plt.show()
+
+# Add regions
 
 #%%
 
