@@ -1,0 +1,439 @@
+"OBJECTID","ID_0","ISO","NAME_0","ID_1","NAME_1","ID_2","NAME_2","TYPE_2","ENGTYPE_2","NL_NAME_2","VARNAME_2"
+1,169,"NOR","Norway",1,"Ãstfold",1,"Aremark","Kommuner","Municipality",NA,NA
+2,169,"NOR","Norway",1,"Ãstfold",2,"Askim","Kommuner","Municipality",NA,NA
+3,169,"NOR","Norway",1,"Ãstfold",3,"Borge","Kommuner","Municipality",NA,NA
+4,169,"NOR","Norway",1,"Ãstfold",4,"Eidsberg","Kommuner","Municipality",NA,NA
+5,169,"NOR","Norway",1,"Ãstfold",5,"Fredrikstad","Kommuner","Municipality",NA,NA
+6,169,"NOR","Norway",1,"Ãstfold",6,"Halden","Kommuner","Municipality",NA,NA
+7,169,"NOR","Norway",1,"Ãstfold",7,"Hobøl","Kommuner","Municipality",NA,NA
+8,169,"NOR","Norway",1,"Ãstfold",8,"Hvaler","Kommuner","Municipality",NA,NA
+9,169,"NOR","Norway",1,"Ãstfold",9,"Kraakeroey","Kommuner","Municipality",NA,NA
+10,169,"NOR","Norway",1,"Ãstfold",10,"Marker","Kommuner","Municipality",NA,NA
+11,169,"NOR","Norway",1,"Ãstfold",11,"Moss","Kommuner","Municipality",NA,NA
+12,169,"NOR","Norway",1,"Ãstfold",12,"Onsoey","Kommuner","Municipality",NA,NA
+13,169,"NOR","Norway",1,"Ãstfold",13,"Rømskog","Kommuner","Municipality",NA,NA
+14,169,"NOR","Norway",1,"Ãstfold",14,"Råde","Kommuner","Municipality",NA,NA
+15,169,"NOR","Norway",1,"Ãstfold",15,"Rakkestad","Kommuner","Municipality",NA,NA
+16,169,"NOR","Norway",1,"Ãstfold",16,"Rolvsoey","Kommuner","Municipality",NA,NA
+17,169,"NOR","Norway",1,"Ãstfold",17,"Rygge","Kommuner","Municipality",NA,NA
+18,169,"NOR","Norway",1,"Ãstfold",18,"Sarpsborg","Kommuner","Municipality",NA,NA
+19,169,"NOR","Norway",1,"Ãstfold",19,"Skiptvet","Kommuner","Municipality",NA,"Skiptvedt"
+20,169,"NOR","Norway",1,"Ãstfold",20,"Spydeberg","Kommuner","Municipality",NA,NA
+21,169,"NOR","Norway",1,"Ãstfold",21,"Trøgstad","Kommuner","Municipality",NA,NA
+22,169,"NOR","Norway",1,"Ãstfold",22,"Våler","Kommuner","Municipality",NA,NA
+23,169,"NOR","Norway",2,"Akershus",23,"Ås","Kommuner","Municipality",NA,NA
+24,169,"NOR","Norway",2,"Akershus",24,"Asker","Kommuner","Municipality",NA,NA
+25,169,"NOR","Norway",2,"Akershus",25,"Aurskog-Høland","Kommuner","Municipality",NA,NA
+26,169,"NOR","Norway",2,"Akershus",26,"Bærum","Kommuner","Municipality",NA,NA
+27,169,"NOR","Norway",2,"Akershus",27,"Eidsvoll","Kommuner","Municipality",NA,NA
+28,169,"NOR","Norway",2,"Akershus",28,"Enebakk","Kommuner","Municipality",NA,NA
+29,169,"NOR","Norway",2,"Akershus",29,"Fet","Kommuner","Municipality",NA,NA
+30,169,"NOR","Norway",2,"Akershus",30,"Frogn","Kommuner","Municipality",NA,NA
+31,169,"NOR","Norway",2,"Akershus",31,"Gjerdrum","Kommuner","Municipality",NA,NA
+32,169,"NOR","Norway",2,"Akershus",32,"Hurdal","Kommuner","Municipality",NA,NA
+33,169,"NOR","Norway",2,"Akershus",33,"Lørenskog","Kommuner","Municipality",NA,NA
+34,169,"NOR","Norway",2,"Akershus",34,"Nannestad","Kommuner","Municipality",NA,NA
+35,169,"NOR","Norway",2,"Akershus",35,"Nesodden","Kommuner","Municipality",NA,NA
+36,169,"NOR","Norway",2,"Akershus",36,"Nittedal","Kommuner","Municipality",NA,NA
+37,169,"NOR","Norway",2,"Akershus",37,"Oppegård","Kommuner","Municipality",NA,NA
+38,169,"NOR","Norway",2,"Akershus",38,"Rælingen","Kommuner","Municipality",NA,NA
+39,169,"NOR","Norway",2,"Akershus",39,"Sørum","Kommuner","Municipality",NA,NA
+40,169,"NOR","Norway",2,"Akershus",40,"Skedsmo","Kommuner","Municipality",NA,NA
+41,169,"NOR","Norway",2,"Akershus",41,"Ski","Kommuner","Municipality",NA,NA
+42,169,"NOR","Norway",2,"Akershus",42,"Ullensaker","Kommuner","Municipality",NA,NA
+43,169,"NOR","Norway",2,"Akershus",43,"Vestby","Kommuner","Municipality",NA,NA
+44,169,"NOR","Norway",3,"Aust-Agder",44,"Åmli","Kommuner","Municipality",NA,NA
+45,169,"NOR","Norway",3,"Aust-Agder",45,"Arendal","Kommuner","Municipality",NA,NA
+46,169,"NOR","Norway",3,"Aust-Agder",46,"Birkenes","Kommuner","Municipality",NA,NA
+47,169,"NOR","Norway",3,"Aust-Agder",47,"Bygland","Kommuner","Municipality",NA,NA
+48,169,"NOR","Norway",3,"Aust-Agder",48,"Bykle","Kommuner","Municipality",NA,NA
+49,169,"NOR","Norway",3,"Aust-Agder",49,"Evje og Hornnes","Kommuner","Municipality",NA,NA
+50,169,"NOR","Norway",3,"Aust-Agder",50,"Froland","Kommuner","Municipality",NA,NA
+51,169,"NOR","Norway",3,"Aust-Agder",51,"Gjerstad","Kommuner","Municipality",NA,NA
+52,169,"NOR","Norway",3,"Aust-Agder",52,"Grimstad","Kommuner","Municipality",NA,NA
+53,169,"NOR","Norway",3,"Aust-Agder",53,"Iveland","Kommuner","Municipality",NA,NA
+54,169,"NOR","Norway",3,"Aust-Agder",54,"Lillesand","Kommuner","Municipality",NA,NA
+55,169,"NOR","Norway",3,"Aust-Agder",55,"Risør","Kommuner","Municipality",NA,NA
+56,169,"NOR","Norway",3,"Aust-Agder",56,"Tvedestrand","Kommuner","Municipality",NA,NA
+57,169,"NOR","Norway",3,"Aust-Agder",57,"Valle","Kommuner","Municipality",NA,NA
+58,169,"NOR","Norway",3,"Aust-Agder",58,"Vegårshei","Kommuner","Municipality",NA,"Vegårshei|Vegårdshei"
+59,169,"NOR","Norway",4,"Buskerud",59,"Øvre Eiker","Kommuner","Municipality",NA,NA
+60,169,"NOR","Norway",4,"Buskerud",60,"Ål","Kommuner","Municipality",NA,NA
+61,169,"NOR","Norway",4,"Buskerud",61,"Drammen","Kommuner","Municipality",NA,NA
+62,169,"NOR","Norway",4,"Buskerud",62,"Flå","Kommuner","Municipality",NA,NA
+63,169,"NOR","Norway",4,"Buskerud",63,"Flesberg","Kommuner","Municipality",NA,NA
+64,169,"NOR","Norway",4,"Buskerud",64,"Gol","Kommuner","Municipality",NA,NA
+65,169,"NOR","Norway",4,"Buskerud",65,"Hemsedal","Kommuner","Municipality",NA,NA
+66,169,"NOR","Norway",4,"Buskerud",66,"Hole","Kommuner","Municipality",NA,NA
+67,169,"NOR","Norway",4,"Buskerud",67,"Hol","Kommuner","Municipality",NA,NA
+68,169,"NOR","Norway",4,"Buskerud",68,"Hurum","Kommuner","Municipality",NA,NA
+69,169,"NOR","Norway",4,"Buskerud",69,"Kongsberg","Kommuner","Municipality",NA,NA
+70,169,"NOR","Norway",4,"Buskerud",70,"Krødsherad","Kommuner","Municipality",NA,NA
+71,169,"NOR","Norway",4,"Buskerud",71,"Lier","Kommuner","Municipality",NA,NA
+72,169,"NOR","Norway",4,"Buskerud",72,"Modum","Kommuner","Municipality",NA,NA
+73,169,"NOR","Norway",4,"Buskerud",73,"Nedre Eiker","Kommuner","Municipality",NA,NA
+74,169,"NOR","Norway",4,"Buskerud",74,"Nes","Kommuner","Municipality",NA,NA
+75,169,"NOR","Norway",4,"Buskerud",75,"Nore og Uvdal","Kommuner","Municipality",NA,NA
+76,169,"NOR","Norway",4,"Buskerud",76,"Røyken","Kommuner","Municipality",NA,NA
+77,169,"NOR","Norway",4,"Buskerud",77,"Ringerike","Kommuner","Municipality",NA,NA
+78,169,"NOR","Norway",4,"Buskerud",78,"Rollag","Kommuner","Municipality",NA,NA
+79,169,"NOR","Norway",4,"Buskerud",79,"Sigdal","Kommuner","Municipality",NA,NA
+80,169,"NOR","Norway",5,"Finnmark",80,"Alta","Kommuner","Municipality",NA,NA
+81,169,"NOR","Norway",5,"Finnmark",81,"Båtsfjord","Kommuner","Municipality",NA,NA
+82,169,"NOR","Norway",5,"Finnmark",82,"Berlevåg","Kommuner","Municipality",NA,NA
+83,169,"NOR","Norway",5,"Finnmark",83,"Gamvik","Kommuner","Municipality",NA,NA
+84,169,"NOR","Norway",5,"Finnmark",84,"Hammerfest","Kommuner","Municipality",NA,NA
+85,169,"NOR","Norway",5,"Finnmark",85,"Hasvik","Kommuner","Municipality",NA,NA
+86,169,"NOR","Norway",5,"Finnmark",86,"Karasjok","Kommuner","Municipality",NA,NA
+87,169,"NOR","Norway",5,"Finnmark",87,"Kautokeino","Kommuner","Municipality",NA,"Guovdageaidnu"
+88,169,"NOR","Norway",5,"Finnmark",88,"Kvalsund","Kommuner","Municipality",NA,NA
+89,169,"NOR","Norway",5,"Finnmark",89,"Lebesby","Kommuner","Municipality",NA,NA
+90,169,"NOR","Norway",5,"Finnmark",90,"Loppa","Kommuner","Municipality",NA,NA
+91,169,"NOR","Norway",5,"Finnmark",91,"Måsøy","Kommuner","Municipality",NA,NA
+92,169,"NOR","Norway",5,"Finnmark",92,"Nesseby","Kommuner","Municipality",NA,"Unjárga"
+93,169,"NOR","Norway",5,"Finnmark",93,"Nordkapp","Kommuner","Municipality",NA,NA
+94,169,"NOR","Norway",5,"Finnmark",94,"Porsanger","Kommuner","Municipality",NA,"Porsá<U+014B>gu"
+95,169,"NOR","Norway",5,"Finnmark",95,"Sør-Varanger","Kommuner","Municipality",NA,NA
+96,169,"NOR","Norway",5,"Finnmark",96,"Tana","Kommuner","Municipality",NA,"Deatnu"
+97,169,"NOR","Norway",5,"Finnmark",97,"Vadsø","Kommuner","Municipality",NA,NA
+98,169,"NOR","Norway",5,"Finnmark",98,"Vardø","Kommuner","Municipality",NA,NA
+99,169,"NOR","Norway",6,"Hedmark",99,"Åmot","Kommuner","Municipality",NA,NA
+100,169,"NOR","Norway",6,"Hedmark",100,"Åsnes","Kommuner","Municipality",NA,NA
+101,169,"NOR","Norway",6,"Hedmark",101,"Alvdal","Kommuner","Municipality",NA,NA
+102,169,"NOR","Norway",6,"Hedmark",102,"Eidskog","Kommuner","Municipality",NA,NA
+103,169,"NOR","Norway",6,"Hedmark",103,"Elverum","Kommuner","Municipality",NA,NA
+104,169,"NOR","Norway",6,"Hedmark",104,"Engerdal","Kommuner","Municipality",NA,NA
+105,169,"NOR","Norway",6,"Hedmark",105,"Folldal","Kommuner","Municipality",NA,NA
+106,169,"NOR","Norway",6,"Hedmark",106,"Grue","Kommuner","Municipality",NA,NA
+107,169,"NOR","Norway",6,"Hedmark",107,"Hamar","Kommuner","Municipality",NA,NA
+108,169,"NOR","Norway",6,"Hedmark",108,"Kongsvinger","Kommuner","Municipality",NA,NA
+109,169,"NOR","Norway",6,"Hedmark",109,"Løten","Kommuner","Municipality",NA,NA
+110,169,"NOR","Norway",6,"Hedmark",110,"Nord-Odal","Kommuner","Municipality",NA,NA
+111,169,"NOR","Norway",6,"Hedmark",111,"Os","Kommuner","Municipality",NA,NA
+112,169,"NOR","Norway",6,"Hedmark",112,"Rendalen","Kommuner","Municipality",NA,NA
+113,169,"NOR","Norway",6,"Hedmark",113,"Ringsaker","Kommuner","Municipality",NA,NA
+114,169,"NOR","Norway",6,"Hedmark",114,"Sør-Odal","Kommuner","Municipality",NA,NA
+115,169,"NOR","Norway",6,"Hedmark",115,"Stange","Kommuner","Municipality",NA,NA
+116,169,"NOR","Norway",6,"Hedmark",116,"Stor-Elvdal","Kommuner","Municipality",NA,NA
+117,169,"NOR","Norway",6,"Hedmark",117,"Tolga","Kommuner","Municipality",NA,NA
+118,169,"NOR","Norway",6,"Hedmark",118,"Trysil","Kommuner","Municipality",NA,NA
+119,169,"NOR","Norway",6,"Hedmark",119,"Tynset","Kommuner","Municipality",NA,NA
+120,169,"NOR","Norway",6,"Hedmark",120,"Våler","Kommuner","Municipality",NA,NA
+121,169,"NOR","Norway",7,"Hordaland",121,"Øygarden","Kommuner","Municipality",NA,NA
+122,169,"NOR","Norway",7,"Hordaland",122,"Askøy","Kommuner","Municipality",NA,NA
+123,169,"NOR","Norway",7,"Hordaland",123,"Austevoll","Kommuner","Municipality",NA,NA
+124,169,"NOR","Norway",7,"Hordaland",124,"Austrheim","Kommuner","Municipality",NA,NA
+125,169,"NOR","Norway",7,"Hordaland",125,"Bømlo","Kommuner","Municipality",NA,NA
+126,169,"NOR","Norway",7,"Hordaland",126,"Bergen","Kommuner","Municipality",NA,NA
+127,169,"NOR","Norway",7,"Hordaland",127,"Eidfjord","Kommuner","Municipality",NA,NA
+128,169,"NOR","Norway",7,"Hordaland",128,"Etne","Kommuner","Municipality",NA,NA
+129,169,"NOR","Norway",7,"Hordaland",129,"Fedje","Kommuner","Municipality",NA,NA
+130,169,"NOR","Norway",7,"Hordaland",130,"Fitjar","Kommuner","Municipality",NA,NA
+131,169,"NOR","Norway",7,"Hordaland",131,"Fjell","Kommuner","Municipality",NA,NA
+132,169,"NOR","Norway",7,"Hordaland",132,"Fusa","Kommuner","Municipality",NA,NA
+133,169,"NOR","Norway",7,"Hordaland",133,"Granvin","Kommuner","Municipality",NA,NA
+134,169,"NOR","Norway",7,"Hordaland",134,"Jondal","Kommuner","Municipality",NA,NA
+135,169,"NOR","Norway",7,"Hordaland",135,"Kvam","Kommuner","Municipality",NA,NA
+136,169,"NOR","Norway",7,"Hordaland",136,"Kvinnherad","Kommuner","Municipality",NA,NA
+137,169,"NOR","Norway",7,"Hordaland",137,"Lindås","Kommuner","Municipality",NA,NA
+138,169,"NOR","Norway",7,"Hordaland",138,"Masfjorden","Kommuner","Municipality",NA,NA
+139,169,"NOR","Norway",7,"Hordaland",139,"Meland","Kommuner","Municipality",NA,NA
+140,169,"NOR","Norway",7,"Hordaland",140,"Modalen","Kommuner","Municipality",NA,NA
+141,169,"NOR","Norway",7,"Hordaland",141,"Odda","Kommuner","Municipality",NA,NA
+142,169,"NOR","Norway",7,"Hordaland",142,"Oelen","Kommuner","Municipality",NA,NA
+143,169,"NOR","Norway",7,"Hordaland",143,"Os","Kommuner","Municipality",NA,NA
+144,169,"NOR","Norway",7,"Hordaland",144,"Osterøy","Kommuner","Municipality",NA,NA
+145,169,"NOR","Norway",7,"Hordaland",145,"Radøy","Kommuner","Municipality",NA,NA
+146,169,"NOR","Norway",7,"Hordaland",146,"Samnanger","Kommuner","Municipality",NA,NA
+147,169,"NOR","Norway",7,"Hordaland",147,"Stord","Kommuner","Municipality",NA,NA
+148,169,"NOR","Norway",7,"Hordaland",148,"Sund","Kommuner","Municipality",NA,NA
+149,169,"NOR","Norway",7,"Hordaland",149,"Sveio","Kommuner","Municipality",NA,NA
+150,169,"NOR","Norway",7,"Hordaland",150,"Tysnes","Kommuner","Municipality",NA,NA
+151,169,"NOR","Norway",7,"Hordaland",151,"Ullensvang","Kommuner","Municipality",NA,NA
+152,169,"NOR","Norway",7,"Hordaland",152,"Ulvik","Kommuner","Municipality",NA,NA
+153,169,"NOR","Norway",7,"Hordaland",153,"Vaksdal","Kommuner","Municipality",NA,NA
+154,169,"NOR","Norway",7,"Hordaland",154,"Voss","Kommuner","Municipality",NA,NA
+155,169,"NOR","Norway",8,"Møre og Romsdal",155,"Ørskog","Kommuner","Municipality",NA,NA
+156,169,"NOR","Norway",8,"Møre og Romsdal",156,"Ørsta","Kommuner","Municipality",NA,NA
+157,169,"NOR","Norway",8,"Møre og Romsdal",157,"Ålesund","Kommuner","Municipality",NA,NA
+158,169,"NOR","Norway",8,"Møre og Romsdal",158,"Aukra","Kommuner","Municipality",NA,NA
+159,169,"NOR","Norway",8,"Møre og Romsdal",159,"Aure","Kommuner","Municipality",NA,NA
+160,169,"NOR","Norway",8,"Møre og Romsdal",160,"Averøy","Kommuner","Municipality",NA,NA
+161,169,"NOR","Norway",8,"Møre og Romsdal",161,"Eide","Kommuner","Municipality",NA,NA
+162,169,"NOR","Norway",8,"Møre og Romsdal",162,"Fræna","Kommuner","Municipality",NA,NA
+163,169,"NOR","Norway",8,"Møre og Romsdal",163,"Frei","Kommuner","Municipality",NA,NA
+164,169,"NOR","Norway",8,"Møre og Romsdal",164,"Giske","Kommuner","Municipality",NA,NA
+165,169,"NOR","Norway",8,"Møre og Romsdal",165,"Gjemnes","Kommuner","Municipality",NA,NA
+166,169,"NOR","Norway",8,"Møre og Romsdal",166,"Halsa","Kommuner","Municipality",NA,NA
+167,169,"NOR","Norway",8,"Møre og Romsdal",167,"Haram","Kommuner","Municipality",NA,NA
+168,169,"NOR","Norway",8,"Møre og Romsdal",168,"Hareid","Kommuner","Municipality",NA,NA
+169,169,"NOR","Norway",8,"Møre og Romsdal",169,"Herøy","Kommuner","Municipality",NA,NA
+170,169,"NOR","Norway",8,"Møre og Romsdal",170,"Kristiansund","Kommuner","Municipality",NA,NA
+171,169,"NOR","Norway",8,"Møre og Romsdal",171,"Midsund","Kommuner","Municipality",NA,NA
+172,169,"NOR","Norway",8,"Møre og Romsdal",172,"Molde","Kommuner","Municipality",NA,NA
+173,169,"NOR","Norway",8,"Møre og Romsdal",173,"Nesset","Kommuner","Municipality",NA,NA
+174,169,"NOR","Norway",8,"Møre og Romsdal",174,"Norddal","Kommuner","Municipality",NA,NA
+175,169,"NOR","Norway",8,"Møre og Romsdal",175,"Rauma","Kommuner","Municipality",NA,NA
+176,169,"NOR","Norway",8,"Møre og Romsdal",176,"Rindal","Kommuner","Municipality",NA,NA
+177,169,"NOR","Norway",8,"Møre og Romsdal",177,"Sandøy","Kommuner","Municipality",NA,NA
+178,169,"NOR","Norway",8,"Møre og Romsdal",178,"Sande","Kommuner","Municipality",NA,NA
+179,169,"NOR","Norway",8,"Møre og Romsdal",179,"Skodje","Kommuner","Municipality",NA,NA
+180,169,"NOR","Norway",8,"Møre og Romsdal",180,"Smøla","Kommuner","Municipality",NA,NA
+181,169,"NOR","Norway",8,"Møre og Romsdal",181,"Stordal","Kommuner","Municipality",NA,NA
+182,169,"NOR","Norway",8,"Møre og Romsdal",182,"Stranda","Kommuner","Municipality",NA,NA
+183,169,"NOR","Norway",8,"Møre og Romsdal",183,"Sula","Kommuner","Municipality",NA,NA
+184,169,"NOR","Norway",8,"Møre og Romsdal",184,"Sunndal","Kommuner","Municipality",NA,NA
+185,169,"NOR","Norway",8,"Møre og Romsdal",185,"Surnadal","Kommuner","Municipality",NA,NA
+186,169,"NOR","Norway",8,"Møre og Romsdal",186,"Sykkylven","Kommuner","Municipality",NA,NA
+187,169,"NOR","Norway",8,"Møre og Romsdal",187,"Tingvoll","Kommuner","Municipality",NA,NA
+188,169,"NOR","Norway",8,"Møre og Romsdal",188,"Tustna","Kommuner","Municipality",NA,NA
+189,169,"NOR","Norway",8,"Møre og Romsdal",189,"Ulstein","Kommuner","Municipality",NA,NA
+190,169,"NOR","Norway",8,"Møre og Romsdal",190,"Vanylven","Kommuner","Municipality",NA,NA
+191,169,"NOR","Norway",8,"Møre og Romsdal",191,"Vestnes","Kommuner","Municipality",NA,NA
+192,169,"NOR","Norway",8,"Møre og Romsdal",192,"Volda","Kommuner","Municipality",NA,NA
+193,169,"NOR","Norway",9,"Nord-Trøndelag",193,"Flatanger","Kommuner","Municipality",NA,NA
+194,169,"NOR","Norway",9,"Nord-Trøndelag",194,"Fosnes","Kommuner","Municipality",NA,NA
+195,169,"NOR","Norway",9,"Nord-Trøndelag",195,"Frosta","Kommuner","Municipality",NA,NA
+196,169,"NOR","Norway",9,"Nord-Trøndelag",196,"Grong","Kommuner","Municipality",NA,NA
+197,169,"NOR","Norway",9,"Nord-Trøndelag",197,"Høylandet","Kommuner","Municipality",NA,NA
+198,169,"NOR","Norway",9,"Nord-Trøndelag",198,"Inderøy","Kommuner","Municipality",NA,NA
+199,169,"NOR","Norway",9,"Nord-Trøndelag",199,"Leka","Kommuner","Municipality",NA,NA
+200,169,"NOR","Norway",9,"Nord-Trøndelag",200,"Leksvik","Kommuner","Municipality",NA,NA
+201,169,"NOR","Norway",9,"Nord-Trøndelag",201,"Levanger","Kommuner","Municipality",NA,NA
+202,169,"NOR","Norway",9,"Nord-Trøndelag",202,"Lierne","Kommuner","Municipality",NA,NA
+203,169,"NOR","Norway",9,"Nord-Trøndelag",203,"Mandalseid","Kommuner","Municipality",NA,NA
+204,169,"NOR","Norway",9,"Nord-Trøndelag",204,"Meråker","Kommuner","Municipality",NA,NA
+205,169,"NOR","Norway",9,"Nord-Trøndelag",205,"Mosvik","Kommuner","Municipality",NA,NA
+206,169,"NOR","Norway",9,"Nord-Trøndelag",206,"Nærøy","Kommuner","Municipality",NA,NA
+207,169,"NOR","Norway",9,"Nord-Trøndelag",207,"Namsos","Kommuner","Municipality",NA,NA
+208,169,"NOR","Norway",9,"Nord-Trøndelag",208,"Namsskogan","Kommuner","Municipality",NA,NA
+209,169,"NOR","Norway",9,"Nord-Trøndelag",209,"Overhalla","Kommuner","Municipality",NA,NA
+210,169,"NOR","Norway",9,"Nord-Trøndelag",210,"Røyrvik","Kommuner","Municipality",NA,NA
+211,169,"NOR","Norway",9,"Nord-Trøndelag",211,"Snåsa","Kommuner","Municipality",NA,NA
+212,169,"NOR","Norway",9,"Nord-Trøndelag",212,"Steinkjer","Kommuner","Municipality",NA,NA
+213,169,"NOR","Norway",9,"Nord-Trøndelag",213,"Stjørdal","Kommuner","Municipality",NA,NA
+214,169,"NOR","Norway",9,"Nord-Trøndelag",214,"Verdal","Kommuner","Municipality",NA,NA
+215,169,"NOR","Norway",9,"Nord-Trøndelag",215,"Verran","Kommuner","Municipality",NA,NA
+216,169,"NOR","Norway",9,"Nord-Trøndelag",216,"Vikna","Kommuner","Municipality",NA,NA
+217,169,"NOR","Norway",10,"Nordland",217,"Øksnes","Kommuner","Municipality",NA,NA
+218,169,"NOR","Norway",10,"Nordland",218,"Alstahaug","Kommuner","Municipality",NA,NA
+219,169,"NOR","Norway",10,"Nordland",219,"Andøy","Kommuner","Municipality",NA,NA
+220,169,"NOR","Norway",10,"Nordland",220,"Bø","Kommuner","Municipality",NA,NA
+221,169,"NOR","Norway",10,"Nordland",221,"Ballangen","Kommuner","Municipality",NA,NA
+222,169,"NOR","Norway",10,"Nordland",222,"Beiarn","Kommuner","Municipality",NA,NA
+223,169,"NOR","Norway",10,"Nordland",223,"Bindal","Kommuner","Municipality",NA,NA
+224,169,"NOR","Norway",10,"Nordland",224,"Bodø","Kommuner","Municipality",NA,NA
+225,169,"NOR","Norway",10,"Nordland",225,"Brønnøy","Kommuner","Municipality",NA,NA
+226,169,"NOR","Norway",10,"Nordland",226,"Dønna","Kommuner","Municipality",NA,NA
+227,169,"NOR","Norway",10,"Nordland",227,"Evenes","Kommuner","Municipality",NA,NA
+228,169,"NOR","Norway",10,"Nordland",228,"Fauske","Kommuner","Municipality",NA,NA
+229,169,"NOR","Norway",10,"Nordland",229,"Flakstad","Kommuner","Municipality",NA,NA
+230,169,"NOR","Norway",10,"Nordland",230,"Gildeskål","Kommuner","Municipality",NA,NA
+231,169,"NOR","Norway",10,"Nordland",231,"Grane","Kommuner","Municipality",NA,NA
+232,169,"NOR","Norway",10,"Nordland",232,"Hadsel","Kommuner","Municipality",NA,NA
+233,169,"NOR","Norway",10,"Nordland",233,"Hamarøy","Kommuner","Municipality",NA,NA
+234,169,"NOR","Norway",10,"Nordland",234,"Hattfjelldal","Kommuner","Municipality",NA,NA
+235,169,"NOR","Norway",10,"Nordland",235,"Hemnes","Kommuner","Municipality",NA,NA
+236,169,"NOR","Norway",10,"Nordland",236,"Herøy","Kommuner","Municipality",NA,NA
+237,169,"NOR","Norway",10,"Nordland",237,"Lødingen","Kommuner","Municipality",NA,NA
+238,169,"NOR","Norway",10,"Nordland",238,"Leirfjord","Kommuner","Municipality",NA,NA
+239,169,"NOR","Norway",10,"Nordland",239,"Lurøy","Kommuner","Municipality",NA,NA
+240,169,"NOR","Norway",10,"Nordland",240,"Meløy","Kommuner","Municipality",NA,NA
+241,169,"NOR","Norway",10,"Nordland",241,"Moskenes","Kommuner","Municipality",NA,NA
+242,169,"NOR","Norway",10,"Nordland",242,"Narvik","Kommuner","Municipality",NA,NA
+243,169,"NOR","Norway",10,"Nordland",243,"Nesna","Kommuner","Municipality",NA,NA
+244,169,"NOR","Norway",10,"Nordland",244,"Rødøy","Kommuner","Municipality",NA,NA
+245,169,"NOR","Norway",10,"Nordland",245,"Røst","Kommuner","Municipality",NA,NA
+246,169,"NOR","Norway",10,"Nordland",246,"Rana","Kommuner","Municipality",NA,NA
+247,169,"NOR","Norway",10,"Nordland",247,"Sømna","Kommuner","Municipality",NA,NA
+248,169,"NOR","Norway",10,"Nordland",248,"Sørfold","Kommuner","Municipality",NA,NA
+249,169,"NOR","Norway",10,"Nordland",249,"Saltdal","Kommuner","Municipality",NA,NA
+250,169,"NOR","Norway",10,"Nordland",250,"Skjerstad","Kommuner","Municipality",NA,NA
+251,169,"NOR","Norway",10,"Nordland",251,"Sortland","Kommuner","Municipality",NA,NA
+252,169,"NOR","Norway",10,"Nordland",252,"Steigen","Kommuner","Municipality",NA,NA
+253,169,"NOR","Norway",10,"Nordland",253,"Tjeldsund","Kommuner","Municipality",NA,NA
+254,169,"NOR","Norway",10,"Nordland",254,"Træna","Kommuner","Municipality",NA,NA
+255,169,"NOR","Norway",10,"Nordland",255,"Tysfjord","Kommuner","Municipality",NA,NA
+256,169,"NOR","Norway",10,"Nordland",256,"Værøy","Kommuner","Municipality",NA,NA
+257,169,"NOR","Norway",10,"Nordland",257,"Vågan","Kommuner","Municipality",NA,NA
+258,169,"NOR","Norway",10,"Nordland",258,"Vefsn","Kommuner","Municipality",NA,NA
+259,169,"NOR","Norway",10,"Nordland",259,"Vega","Kommuner","Municipality",NA,NA
+260,169,"NOR","Norway",10,"Nordland",260,"Vestvågøy","Kommuner","Municipality",NA,NA
+261,169,"NOR","Norway",10,"Nordland",261,"Vevelstad","Kommuner","Municipality",NA,NA
+262,169,"NOR","Norway",11,"Oppland",262,"Østre Toten","Kommuner","Municipality",NA,NA
+263,169,"NOR","Norway",11,"Oppland",263,"Øyer","Kommuner","Municipality",NA,NA
+264,169,"NOR","Norway",11,"Oppland",264,"Øystre Slidre","Kommuner","Municipality",NA,NA
+265,169,"NOR","Norway",11,"Oppland",265,"Dovre","Kommuner","Municipality",NA,NA
+266,169,"NOR","Norway",11,"Oppland",266,"Etnedal","Kommuner","Municipality",NA,NA
+267,169,"NOR","Norway",11,"Oppland",267,"Gausdal","Kommuner","Municipality",NA,NA
+268,169,"NOR","Norway",11,"Oppland",268,"Gjøvik","Kommuner","Municipality",NA,NA
+269,169,"NOR","Norway",11,"Oppland",269,"Gran","Kommuner","Municipality",NA,NA
+270,169,"NOR","Norway",11,"Oppland",270,"Jevnaker","Kommuner","Municipality",NA,NA
+271,169,"NOR","Norway",11,"Oppland",271,"Lesja","Kommuner","Municipality",NA,NA
+272,169,"NOR","Norway",11,"Oppland",272,"Lillehammer","Kommuner","Municipality",NA,NA
+273,169,"NOR","Norway",11,"Oppland",273,"Lom","Kommuner","Municipality",NA,NA
+274,169,"NOR","Norway",11,"Oppland",274,"Lunner","Kommuner","Municipality",NA,NA
+275,169,"NOR","Norway",11,"Oppland",275,"Nord-Aurdal","Kommuner","Municipality",NA,NA
+276,169,"NOR","Norway",11,"Oppland",276,"Nord-Fron","Kommuner","Municipality",NA,NA
+277,169,"NOR","Norway",11,"Oppland",277,"Nordre Land","Kommuner","Municipality",NA,NA
+278,169,"NOR","Norway",11,"Oppland",278,"Ringebu","Kommuner","Municipality",NA,NA
+279,169,"NOR","Norway",11,"Oppland",279,"Søndre Land","Kommuner","Municipality",NA,NA
+280,169,"NOR","Norway",11,"Oppland",280,"Sør-Aurdal","Kommuner","Municipality",NA,NA
+281,169,"NOR","Norway",11,"Oppland",281,"Sør-Fron","Kommuner","Municipality",NA,NA
+282,169,"NOR","Norway",11,"Oppland",282,"Sel","Kommuner","Municipality",NA,NA
+283,169,"NOR","Norway",11,"Oppland",283,"Skjåk","Kommuner","Municipality",NA,NA
+284,169,"NOR","Norway",11,"Oppland",284,"Vågå","Kommuner","Municipality",NA,NA
+285,169,"NOR","Norway",11,"Oppland",285,"Vang","Kommuner","Municipality",NA,NA
+286,169,"NOR","Norway",11,"Oppland",286,"Vestre Slidre","Kommuner","Municipality",NA,NA
+287,169,"NOR","Norway",11,"Oppland",287,"Vestre Toten","Kommuner","Municipality",NA,NA
+288,169,"NOR","Norway",12,"Oslo",288,"Oslo","Kommuner","Municipality",NA,NA
+289,169,"NOR","Norway",13,"Rogaland",289,"Bjerkreim","Kommuner","Municipality",NA,NA
+290,169,"NOR","Norway",13,"Rogaland",290,"Bokn","Kommuner","Municipality",NA,NA
+291,169,"NOR","Norway",13,"Rogaland",291,"Eigersund","Kommuner","Municipality",NA,NA
+292,169,"NOR","Norway",13,"Rogaland",292,"Finnøy","Kommuner","Municipality",NA,NA
+293,169,"NOR","Norway",13,"Rogaland",293,"Forsand","Kommuner","Municipality",NA,NA
+294,169,"NOR","Norway",13,"Rogaland",294,"Gjesdal","Kommuner","Municipality",NA,NA
+295,169,"NOR","Norway",13,"Rogaland",295,"Hå","Kommuner","Municipality",NA,NA
+296,169,"NOR","Norway",13,"Rogaland",296,"Haugesund","Kommuner","Municipality",NA,NA
+297,169,"NOR","Norway",13,"Rogaland",297,"Hjelmeland","Kommuner","Municipality",NA,NA
+298,169,"NOR","Norway",13,"Rogaland",298,"Karmøy","Kommuner","Municipality",NA,NA
+299,169,"NOR","Norway",13,"Rogaland",299,"Klepp","Kommuner","Municipality",NA,NA
+300,169,"NOR","Norway",13,"Rogaland",300,"Kvitsøy","Kommuner","Municipality",NA,NA
+301,169,"NOR","Norway",13,"Rogaland",301,"Lund","Kommuner","Municipality",NA,NA
+302,169,"NOR","Norway",13,"Rogaland",302,"Randaberg","Kommuner","Municipality",NA,NA
+303,169,"NOR","Norway",13,"Rogaland",303,"Rennesøy","Kommuner","Municipality",NA,NA
+304,169,"NOR","Norway",13,"Rogaland",304,"Sandnes","Kommuner","Municipality",NA,NA
+305,169,"NOR","Norway",13,"Rogaland",305,"Sauda","Kommuner","Municipality",NA,NA
+306,169,"NOR","Norway",13,"Rogaland",306,"Sokndal","Kommuner","Municipality",NA,NA
+307,169,"NOR","Norway",13,"Rogaland",307,"Sola","Kommuner","Municipality",NA,NA
+308,169,"NOR","Norway",13,"Rogaland",308,"Stavanger","Kommuner","Municipality",NA,NA
+309,169,"NOR","Norway",13,"Rogaland",309,"Strand","Kommuner","Municipality",NA,NA
+310,169,"NOR","Norway",13,"Rogaland",310,"Suldal","Kommuner","Municipality",NA,NA
+311,169,"NOR","Norway",13,"Rogaland",311,"Time","Kommuner","Municipality",NA,NA
+312,169,"NOR","Norway",13,"Rogaland",312,"Tysvær","Kommuner","Municipality",NA,NA
+313,169,"NOR","Norway",13,"Rogaland",313,"Utsira","Kommuner","Municipality",NA,NA
+314,169,"NOR","Norway",13,"Rogaland",314,"Vindafjord","Kommuner","Municipality",NA,NA
+315,169,"NOR","Norway",14,"Sør-Trøndelag",315,"Ørland","Kommuner","Municipality",NA,NA
+316,169,"NOR","Norway",14,"Sør-Trøndelag",316,"Åfjord","Kommuner","Municipality",NA,NA
+317,169,"NOR","Norway",14,"Sør-Trøndelag",317,"Agdenes","Kommuner","Municipality",NA,NA
+318,169,"NOR","Norway",14,"Sør-Trøndelag",318,"Bjugn","Kommuner","Municipality",NA,NA
+319,169,"NOR","Norway",14,"Sør-Trøndelag",319,"Frøya","Kommuner","Municipality",NA,NA
+320,169,"NOR","Norway",14,"Sør-Trøndelag",320,"Hemne","Kommuner","Municipality",NA,NA
+321,169,"NOR","Norway",14,"Sør-Trøndelag",321,"Hitra","Kommuner","Municipality",NA,NA
+322,169,"NOR","Norway",14,"Sør-Trøndelag",322,"Holtålen","Kommuner","Municipality",NA,NA
+323,169,"NOR","Norway",14,"Sør-Trøndelag",323,"Klæbu","Kommuner","Municipality",NA,NA
+324,169,"NOR","Norway",14,"Sør-Trøndelag",324,"Malvik","Kommuner","Municipality",NA,NA
+325,169,"NOR","Norway",14,"Sør-Trøndelag",325,"Meldal","Kommuner","Municipality",NA,NA
+326,169,"NOR","Norway",14,"Sør-Trøndelag",326,"Melhus","Kommuner","Municipality",NA,NA
+327,169,"NOR","Norway",14,"Sør-Trøndelag",327,"Midtre Gauldal","Kommuner","Municipality",NA,NA
+328,169,"NOR","Norway",14,"Sør-Trøndelag",328,"Oppdal","Kommuner","Municipality",NA,NA
+329,169,"NOR","Norway",14,"Sør-Trøndelag",329,"Orkdal","Kommuner","Municipality",NA,NA
+330,169,"NOR","Norway",14,"Sør-Trøndelag",330,"Osen","Kommuner","Municipality",NA,NA
+331,169,"NOR","Norway",14,"Sør-Trøndelag",331,"Røros","Kommuner","Municipality",NA,NA
+332,169,"NOR","Norway",14,"Sør-Trøndelag",332,"Rennebu","Kommuner","Municipality",NA,NA
+333,169,"NOR","Norway",14,"Sør-Trøndelag",333,"Rissa","Kommuner","Municipality",NA,NA
+334,169,"NOR","Norway",14,"Sør-Trøndelag",334,"Roan","Kommuner","Municipality",NA,NA
+335,169,"NOR","Norway",14,"Sør-Trøndelag",335,"Selbu","Kommuner","Municipality",NA,NA
+336,169,"NOR","Norway",14,"Sør-Trøndelag",336,"Skaun","Kommuner","Municipality",NA,NA
+337,169,"NOR","Norway",14,"Sør-Trøndelag",337,"Snillfjord","Kommuner","Municipality",NA,NA
+338,169,"NOR","Norway",14,"Sør-Trøndelag",338,"Trondheim","Kommuner","Municipality",NA,NA
+339,169,"NOR","Norway",14,"Sør-Trøndelag",339,"Tydal","Kommuner","Municipality",NA,NA
+340,169,"NOR","Norway",15,"Sogn og Fjordane",340,"Årdal","Kommuner","Municipality",NA,NA
+341,169,"NOR","Norway",15,"Sogn og Fjordane",341,"Askvoll","Kommuner","Municipality",NA,NA
+342,169,"NOR","Norway",15,"Sogn og Fjordane",342,"Aurland","Kommuner","Municipality",NA,NA
+343,169,"NOR","Norway",15,"Sogn og Fjordane",343,"Balestrand","Kommuner","Municipality",NA,NA
+344,169,"NOR","Norway",15,"Sogn og Fjordane",344,"Bremanger","Kommuner","Municipality",NA,NA
+345,169,"NOR","Norway",15,"Sogn og Fjordane",345,"Eid","Kommuner","Municipality",NA,NA
+346,169,"NOR","Norway",15,"Sogn og Fjordane",346,"Førde","Kommuner","Municipality",NA,NA
+347,169,"NOR","Norway",15,"Sogn og Fjordane",347,"Fjaler","Kommuner","Municipality",NA,NA
+348,169,"NOR","Norway",15,"Sogn og Fjordane",348,"Flora","Kommuner","Municipality",NA,NA
+349,169,"NOR","Norway",15,"Sogn og Fjordane",349,"Gaular","Kommuner","Municipality",NA,NA
+350,169,"NOR","Norway",15,"Sogn og Fjordane",350,"Gloppen","Kommuner","Municipality",NA,NA
+351,169,"NOR","Norway",15,"Sogn og Fjordane",351,"Gulen","Kommuner","Municipality",NA,NA
+352,169,"NOR","Norway",15,"Sogn og Fjordane",352,"Høyanger","Kommuner","Municipality",NA,NA
+353,169,"NOR","Norway",15,"Sogn og Fjordane",353,"Hornindal","Kommuner","Municipality",NA,NA
+354,169,"NOR","Norway",15,"Sogn og Fjordane",354,"Hyllestad","Kommuner","Municipality",NA,NA
+355,169,"NOR","Norway",15,"Sogn og Fjordane",355,"Jølster","Kommuner","Municipality",NA,NA
+356,169,"NOR","Norway",15,"Sogn og Fjordane",356,"Lærdal","Kommuner","Municipality",NA,NA
+357,169,"NOR","Norway",15,"Sogn og Fjordane",357,"Leikanger","Kommuner","Municipality",NA,NA
+358,169,"NOR","Norway",15,"Sogn og Fjordane",358,"Luster","Kommuner","Municipality",NA,NA
+359,169,"NOR","Norway",15,"Sogn og Fjordane",359,"Naustdal","Kommuner","Municipality",NA,NA
+360,169,"NOR","Norway",15,"Sogn og Fjordane",360,"Selje","Kommuner","Municipality",NA,NA
+361,169,"NOR","Norway",15,"Sogn og Fjordane",361,"Sogndal","Kommuner","Municipality",NA,NA
+362,169,"NOR","Norway",15,"Sogn og Fjordane",362,"Solund","Kommuner","Municipality",NA,NA
+363,169,"NOR","Norway",15,"Sogn og Fjordane",363,"Stryn","Kommuner","Municipality",NA,NA
+364,169,"NOR","Norway",15,"Sogn og Fjordane",364,"Vågsøy","Kommuner","Municipality",NA,NA
+365,169,"NOR","Norway",15,"Sogn og Fjordane",365,"Vik","Kommuner","Municipality",NA,NA
+366,169,"NOR","Norway",16,"Telemark",366,"Bø","Kommuner","Municipality",NA,NA
+367,169,"NOR","Norway",16,"Telemark",367,"Bamble","Kommuner","Municipality",NA,NA
+368,169,"NOR","Norway",16,"Telemark",368,"Drangedal","Kommuner","Municipality",NA,NA
+369,169,"NOR","Norway",16,"Telemark",369,"Fyresdal","Kommuner","Municipality",NA,NA
+370,169,"NOR","Norway",16,"Telemark",370,"Hjartdal","Kommuner","Municipality",NA,NA
+371,169,"NOR","Norway",16,"Telemark",371,"Kragerø","Kommuner","Municipality",NA,NA
+372,169,"NOR","Norway",16,"Telemark",372,"Kviteseid","Kommuner","Municipality",NA,"Kvitseid"
+373,169,"NOR","Norway",16,"Telemark",373,"Nissedal","Kommuner","Municipality",NA,NA
+374,169,"NOR","Norway",16,"Telemark",374,"Nome","Kommuner","Municipality",NA,NA
+375,169,"NOR","Norway",16,"Telemark",375,"Notodden","Kommuner","Municipality",NA,NA
+376,169,"NOR","Norway",16,"Telemark",376,"Porsgrunn","Kommuner","Municipality",NA,NA
+377,169,"NOR","Norway",16,"Telemark",377,"Sauherad","Kommuner","Municipality",NA,NA
+378,169,"NOR","Norway",16,"Telemark",378,"Seljord","Kommuner","Municipality",NA,NA
+379,169,"NOR","Norway",16,"Telemark",379,"Siljan","Kommuner","Municipality",NA,NA
+380,169,"NOR","Norway",16,"Telemark",380,"Skien","Kommuner","Municipality",NA,NA
+381,169,"NOR","Norway",16,"Telemark",381,"Tinn","Kommuner","Municipality",NA,NA
+382,169,"NOR","Norway",16,"Telemark",382,"Tokke","Kommuner","Municipality",NA,NA
+383,169,"NOR","Norway",16,"Telemark",383,"Vinje","Kommuner","Municipality",NA,NA
+384,169,"NOR","Norway",17,"Troms",384,"Balsfjord","Kommuner","Municipality",NA,NA
+385,169,"NOR","Norway",17,"Troms",385,"Bardu","Kommuner","Municipality",NA,NA
+386,169,"NOR","Norway",17,"Troms",386,"Berg","Kommuner","Municipality",NA,NA
+387,169,"NOR","Norway",17,"Troms",387,"Bjarkøy","Kommuner","Municipality",NA,NA
+388,169,"NOR","Norway",17,"Troms",388,"Dyrøy","Kommuner","Municipality",NA,NA
+389,169,"NOR","Norway",17,"Troms",389,"Gratangen","Kommuner","Municipality",NA,NA
+390,169,"NOR","Norway",17,"Troms",390,"Harstad","Kommuner","Municipality",NA,NA
+391,169,"NOR","Norway",17,"Troms",391,"Ibestad","Kommuner","Municipality",NA,NA
+392,169,"NOR","Norway",17,"Troms",392,"Kåfjord","Kommuner","Municipality",NA,"G ivuotna"
+393,169,"NOR","Norway",17,"Troms",393,"Karlsøy","Kommuner","Municipality",NA,NA
+394,169,"NOR","Norway",17,"Troms",394,"Kvæfjord","Kommuner","Municipality",NA,NA
+395,169,"NOR","Norway",17,"Troms",395,"Kvænangen","Kommuner","Municipality",NA,NA
+396,169,"NOR","Norway",17,"Troms",396,"Lavangen","Kommuner","Municipality",NA,NA
+397,169,"NOR","Norway",17,"Troms",397,"Lenvik","Kommuner","Municipality",NA,NA
+398,169,"NOR","Norway",17,"Troms",398,"Lyngen","Kommuner","Municipality",NA,NA
+399,169,"NOR","Norway",17,"Troms",399,"Målselv","Kommuner","Municipality",NA,NA
+400,169,"NOR","Norway",17,"Troms",400,"Nordreisa","Kommuner","Municipality",NA,NA
+401,169,"NOR","Norway",17,"Troms",401,"Sørreisa","Kommuner","Municipality",NA,NA
+402,169,"NOR","Norway",17,"Troms",402,"Salangen","Kommuner","Municipality",NA,NA
+403,169,"NOR","Norway",17,"Troms",403,"Skånland","Kommuner","Municipality",NA,NA
+404,169,"NOR","Norway",17,"Troms",404,"Skjervøy","Kommuner","Municipality",NA,NA
+405,169,"NOR","Norway",17,"Troms",405,"Storfjord","Kommuner","Municipality",NA,NA
+406,169,"NOR","Norway",17,"Troms",406,"Torsken","Kommuner","Municipality",NA,NA
+407,169,"NOR","Norway",17,"Troms",407,"Tranøy","Kommuner","Municipality",NA,NA
+408,169,"NOR","Norway",17,"Troms",408,"Tromsø","Kommuner","Municipality",NA,NA
+409,169,"NOR","Norway",18,"Vest-Agder",409,"Åseral","Kommuner","Municipality",NA,NA
+410,169,"NOR","Norway",18,"Vest-Agder",410,"Audnedal","Kommuner","Municipality",NA,NA
+411,169,"NOR","Norway",18,"Vest-Agder",411,"Farsund","Kommuner","Municipality",NA,NA
+412,169,"NOR","Norway",18,"Vest-Agder",412,"Flekkefjord","Kommuner","Municipality",NA,NA
+413,169,"NOR","Norway",18,"Vest-Agder",413,"Hægebostad","Kommuner","Municipality",NA,NA
+414,169,"NOR","Norway",18,"Vest-Agder",414,"Kristiansand","Kommuner","Municipality",NA,NA
+415,169,"NOR","Norway",18,"Vest-Agder",415,"Kvinesdal","Kommuner","Municipality",NA,NA
+416,169,"NOR","Norway",18,"Vest-Agder",416,"Lindesnes","Kommuner","Municipality",NA,NA
+417,169,"NOR","Norway",18,"Vest-Agder",417,"Lyngdal","Kommuner","Municipality",NA,NA
+418,169,"NOR","Norway",18,"Vest-Agder",418,"Mandal","Kommuner","Municipality",NA,NA
+419,169,"NOR","Norway",18,"Vest-Agder",419,"Marnardal","Kommuner","Municipality",NA,"Marnadal"
+420,169,"NOR","Norway",18,"Vest-Agder",420,"Søgne","Kommuner","Municipality",NA,NA
+421,169,"NOR","Norway",18,"Vest-Agder",421,"Sirdal","Kommuner","Municipality",NA,NA
+422,169,"NOR","Norway",18,"Vest-Agder",422,"Songdalen","Kommuner","Municipality",NA,NA
+423,169,"NOR","Norway",18,"Vest-Agder",423,"Vennesla","Kommuner","Municipality",NA,NA
+424,169,"NOR","Norway",19,"Vestfold",424,"Andebu","Kommuner","Municipality",NA,NA
+425,169,"NOR","Norway",19,"Vestfold",425,"Borre","Kommuner","Municipality",NA,NA
+426,169,"NOR","Norway",19,"Vestfold",426,"Hof","Kommuner","Municipality",NA,NA
+427,169,"NOR","Norway",19,"Vestfold",427,"Holmestrand","Kommuner","Municipality",NA,NA
+428,169,"NOR","Norway",19,"Vestfold",428,"Lardal","Kommuner","Municipality",NA,NA
+429,169,"NOR","Norway",19,"Vestfold",429,"Larvik","Kommuner","Municipality",NA,NA
+430,169,"NOR","Norway",19,"Vestfold",430,"Nøtterøy","Kommuner","Municipality",NA,NA
+431,169,"NOR","Norway",19,"Vestfold",431,"Ramnes","Kommuner","Municipality",NA,NA
+432,169,"NOR","Norway",19,"Vestfold",432,"Sandefjord","Kommuner","Municipality",NA,NA
+433,169,"NOR","Norway",19,"Vestfold",433,"Sande","Kommuner","Municipality",NA,NA
+434,169,"NOR","Norway",19,"Vestfold",434,"Stokke","Kommuner","Municipality",NA,NA
+435,169,"NOR","Norway",19,"Vestfold",435,"Svelvik","Kommuner","Municipality",NA,NA
+436,169,"NOR","Norway",19,"Vestfold",436,"Tønsberg","Kommuner","Municipality",NA,NA
+437,169,"NOR","Norway",19,"Vestfold",437,"Tjøme","Kommuner","Municipality",NA,NA
+438,169,"NOR","Norway",19,"Vestfold",438,"Vaale","Kommuner","Municipality",NA,NA

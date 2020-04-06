@@ -134,4 +134,51 @@ print_regions_and_provinces('Denmark')
 print_regions_and_provinces('Sweden')
 print_regions_and_provinces('United States of America')
 
-# 
+### Using shape files from kartverket
+# files
+shape_country = 'norway_shape/NOR_adm_shp/NOR_adm0'
+shape_county = 'norway_shape/NOR_adm_shp/NOR_adm1'
+shape_princ = 'norway_shape/kartverket/kommuner/kommuner'
+
+#### kommuner
+#Norway boundary
+reader_norway = shpreader.Reader(shape_country)
+norway = reader_norway.geometries()
+norway_geom = next(norway)
+norway_rec = reader_norway.records()
+
+#%%
+
+next(norway_rec)
+
+#%%
+
+#kommuner
+reader_princ = shpreader.Reader(shape_princ)
+
+princ = reader_princ.geometries()
+princ_rec = reader_princ.records()
+
+#%%
+
+rec = next(princ_rec)
+rec
+
+#%%
+
+subplot_kw = dict(projection=ccrs.Mercator())
+
+fig, ax = plt.subplots(figsize=(12, 15),
+                       subplot_kw=subplot_kw)
+ax.set_extent((2, 32.0, 56, 71))
+
+
+#%%
+
+ax.add_geometries(norway_geom, ccrs.PlateCarree(), facecolor="white", edgecolor='black')
+
+#%%
+
+for princ, rec in zip(reader_princ.geometries(), reader_princ.records()):
+    ax.add_geometries(princ, ccrs.PlateCarree(), facecolor="lightGrey", edgecolor='black', alpha=.3)
+plt.show()
