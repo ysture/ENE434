@@ -199,15 +199,48 @@ for layer in layers:
     # Do stuff with the gdf
 
 # GeoNorge API for kommunereform
+# Create df of all municipality changes
 import requests
-baseurl = 'https://ws.geonorge.no/kommunereform/v1/'
-r = requests.get(baseurl)
-r.status_code
-
-url = 'https://ws.geonorge.no/kommunereform/v1/endringer/0105'
+import datetime
+url = 'https://ws.geonorge.no/kommunereform/v1/endringer/0301'
 r = requests.get(url)
 r.status_code
 r.reason
 j = r.json()
+gyldig = []
+gyldigDict = {}
+start_t = datetime.datetime.now()
+for i in range(0,10000):
+    i = '{:0>4}'.format(i) # Add a leading zero if number has three or less characters
+    try:
+        r = requests.get(url + i)
+        j = r.json()
+    except Exception as e:
+        print(i, e)
+    try:
+        current_municnr = j['data']['kommune']['id']
+        current_municname = j['data']['kommune']['navn']
+    except TypeError:
+        continue
+    # Add municipality number to gyldig-list if there are no "erstattetav" keys in the json
+    if 'erstattetav' not in j['data']:
+        obs = (current_municname, current_municnr)
+        if obs not in gyldig:
+            gyldig.append(obs)
+    # Add all former municipalitites to list of old municipality numbers if there is an "erstatter" key in the json
+    elif ('erstattetav' in j['data']):
+        new_municnr = j['data']['erstattetav'][0]['id']
+        old_municnr = j['data']['kommune']['id']
+        try:
+            oldMunicList = gyldigDict[new_municnr]
+        except KeyError:
+            gyldigDict[new_municnr] = []
+        if old_municnr not in gyldigDict[new_municnr]:
+            gyldigDict[new_municnr].append(old_municnr)
+    # If there are no registered changes to municipality, then neither 'erstattetav' nor 'erstatter' will be in JSON
+    elif (('erstattetav' not in j['data']) and ('erstatter'  not in j['data'])):
+        current_municnr = j['data']['kommune']['id']
+        gyldigDict[current_municnr] = []
+end_t = datetime.datetime.now()
+print('Time elapsed {}'.format(end_t - start_t))
 
-# Create df of all municipality changes
