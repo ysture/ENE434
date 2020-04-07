@@ -200,14 +200,15 @@ for layer in layers:
 
 # GeoNorge API for kommunereform
 # Create df of all municipality changes
+# Funker ikke nå
+gyldig = []
 import requests
 import datetime
-url = 'https://ws.geonorge.no/kommunereform/v1/endringer/0301'
+url = 'https://ws.geonorge.no/kommunereform/v1/endringer/5033'
 r = requests.get(url)
 r.status_code
 r.reason
 j = r.json()
-gyldig = []
 gyldigDict = {}
 start_t = datetime.datetime.now()
 for i in range(0,10000):
@@ -222,25 +223,31 @@ for i in range(0,10000):
         current_municname = j['data']['kommune']['navn']
     except TypeError:
         continue
-    # Add municipality number to gyldig-list if there are no "erstattetav" keys in the json
-    if 'erstattetav' not in j['data']:
-        obs = (current_municname, current_municnr)
-        if obs not in gyldig:
-            gyldig.append(obs)
     # Add all former municipalitites to list of old municipality numbers if there is an "erstatter" key in the json
-    elif ('erstattetav' in j['data']):
+    if ('erstattetav' in j['data']):
         new_municnr = j['data']['erstattetav'][0]['id']
         old_municnr = j['data']['kommune']['id']
         try:
-            oldMunicList = gyldigDict[new_municnr]
+            if old_municnr not in gyldigDict[new_municnr]:
+                gyldigDict[new_municnr].append(old_municnr)
         except KeyError:
             gyldigDict[new_municnr] = []
-        if old_municnr not in gyldigDict[new_municnr]:
-            gyldigDict[new_municnr].append(old_municnr)
+    elif ('erstatter' in j['data']):
+        new_municnr = j['data']['kommune']['id']
+        if len(j['data']['erstatter']) > 1:
+            old_municnr = [x['id'] for x in j['data']['erstatter']]
+        else:
+            old_municnr = j['data']['erstatter'][0]['id']
+        try:
+            if old_municnr not in gyldigDict[new_municnr]:
+                gyldigDict[new_municnr].append(old_municnr)
+        except KeyError:
+            gyldigDict[new_municnr] = []
     # If there are no registered changes to municipality, then neither 'erstattetav' nor 'erstatter' will be in JSON
-    elif (('erstattetav' not in j['data']) and ('erstatter'  not in j['data'])):
+    elif (('erstattetav' not in j['data']) and ('erstatter' not in j['data'])):
         current_municnr = j['data']['kommune']['id']
         gyldigDict[current_municnr] = []
+
 end_t = datetime.datetime.now()
 print('Time elapsed {}'.format(end_t - start_t))
 
