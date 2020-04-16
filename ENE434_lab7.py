@@ -121,6 +121,7 @@ plt.plot(pv_df_coords.longitude, pv_df_coords.latitude, 'ro', alpha=0.01, transf
 fig.tight_layout()
 plt.show()
 
+
 # Investigation of Natural Earth (https://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-1-states-provinces/) data
 # Remember to place [] around geometry object when plotting maps using shapesfiles and cartopy
 def print_regions_and_provinces(countries):
@@ -131,7 +132,124 @@ def print_regions_and_provinces(countries):
         if country in countries:
             print(country, region_sub, province_name)
 
+
 print_regions_and_provinces('Norway')
 print_regions_and_provinces('Denmark')
 print_regions_and_provinces('Sweden')
 print_regions_and_provinces('United States of America')
+
+# Estimating a learning curve
+# First we need to create a new variable representing the cumulative capacity (since 2006).
+cumsum_cap = pv_df.sort_values(by='date').agg({'nameplate': 'cumsum'})
+pv_df['cum_cap'] = cumsum_cap
+
+# Formally estimate linear model between the two
+# Remove zero-values of cost_per_kw as log of these are infeasible
+pv_df = pv_df[pv_df.cost_per_kw != 0].copy()
+pv_df['log2_cum_cap'] = np.log2(pv_df.cum_cap)
+pv_df['log2_cost_per_kw'] = np.log2(pv_df.cost_per_kw)
+
+# Create linear model
+import statsmodels.api as sm
+from sklearn.preprocessing import PolynomialFeatures
+
+Y = pv_df.loc[:, 'log2_cost_per_kw']
+X = pv_df.loc[:, 'log2_cum_cap']
+X_ = sm.add_constant(X)
+model = sm.OLS(Y, X_)
+results = model.fit()
+ypred = results.predict()
+results.summary()
+
+
+# Plot polynomial fit
+polynomial_features = PolynomialFeatures(degree=4)
+xp = polynomial_features.fit_transform(X_)
+model = sm.OLS(Y, xp).fit()
+ypred_poly = model.predict(xp)
+
+# Plot lm fit and x4 polynomial fit
+fig = plt.figure()
+plt.scatter(np.log2(pv_df.cum_cap), np.log2(pv_df.cost_per_kw), c='black', alpha=0.1)
+plt.plot(X, ypred, label='LM fit')
+plt.plot(X, ypred_poly, label='Polynomial fit')
+plt.legend()
+plt.show()
+
+# Exercise 1.)
+    # Estimate separate learning curve pre-2012 and post-2012. Can you do this with a single regression?
+    # What would be the advantages and disadvantages of doing so?
+
+
+# Exercise 2.)
+    # Estimate the relationship between cumulative capacity and solar power costs with a local linear regression, or LOESS.
+    # (See section 7.6 and 7.82 in ISL). How is local linear regression similar to and different from splines.
+    #  Use local linear regression create a point forecast of costs from 2015 to 2020. Does this suffer from
+    #  the same problems as the Spline?
+from sklearn import linear_model
+from sklearn.preprocessing import OneHotEncoder
+from skmisc.loess import loess
+# Statsmodels
+lowess = sm.nonparametric.lowess
+z = lowess(Y, X, frac=1./3.)
+
+# Inspired by stackoverlow
+loess = loess(X,Y)
+loess.fit()
+pred = loess.predict(X, stderror=True)
+conf = pred.confidence()
+
+lowess = pred.values
+ll = conf.lower
+ul = conf.upper
+
+pylab.plot(x, y, '+')
+pylab.plot(x, lowess)
+pylab.fill_between(x,ll,ul,alpha=.33)
+pylab.show()
+
+# Old
+inputs_l = loess.loess_inputs(X,Y)
+model_l = loess.loess(x=X,y=Y, weights=1/3)
+pred_l = loess.loess_outputs(10, 15, 10)
+model_fit_l = model_l.fit()
+model.inputs
+model.model
+dir(model)
+dir(pred)
+print(model.input_summary())
+print(model.__doc__)
+dir(model_fit)
+print(model_fit.__doc__)
+
+a = 50000
+pred_loess = model.predict(X[:a])
+# Plot lm fit, x4 polynomial fit and LOESS
+fig = plt.figure()
+plt.scatter(np.log2(pv_df.cum_cap), np.log2(pv_df.cost_per_kw), c='black', alpha=0.1)
+plt.plot(X, ypred, label='LM fit')
+plt.plot(X, ypred_poly, label='Polynomial fit')
+plt.plot(X, pred_loess.values, label='LOESS')
+plt.legend()
+plt.show()
+
+import numpy as np
+import pylab as pylab
+
+############# Stackoverflow LOESS
+x = np.linspace(0,2*np.pi,100)
+y = np.sin(x) + np.random.random(100) * 0.4
+
+l = loess(x,y)
+l.fit()
+pred = l.predict(x, stderror=True)
+conf = pred.confidence()
+
+lowess = pred.values
+ll = conf.lower
+ul = conf.upper
+
+pylab.plot(x, y, '+')
+pylab.plot(x, lowess)
+pylab.fill_between(x,ll,ul,alpha=.33)
+pylab.show()
