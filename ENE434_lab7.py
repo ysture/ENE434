@@ -12,7 +12,7 @@ pv_df = pv_df[(pv_df.year < 2015) & (pv_df.year > 2006)]
 pv_df['monthdate'] = pd.to_datetime((pv_df['month'].astype(str) + '-' + pv_df['year'].astype(str)), format='%m-%Y')
 pv_df['date'] = pd.to_datetime(pv_df.date)
 pv_df.sort_values(by='date', inplace=True)
-
+print('Zero print')
 # Plotting cost_per_kw
 plt.close('all')
 fig, ax = plt.subplots()
@@ -21,7 +21,9 @@ plt.ylim(.25e4, 1.24e4)
 # Formatting x axis labels
 ax.xaxis_date()
 plt.show()
+plt.close()
 
+print('First print')
 # Creating capacity df (showing aggregate trends)
 capacity = pv_df.groupby(by='date').agg({'nameplate': 'sum'})
 capacity['cumCapacity'] = np.cumsum(capacity)
@@ -29,7 +31,7 @@ capacity['cumCapacity'] = np.cumsum(capacity)
 fig = plt.figure()
 plt.plot(capacity.index, capacity.cumCapacity, color='black', linewidth=.75)
 plt.show()
-
+print('Second print')
 # We’ll aggregate both cost and cost less subsidy to the month-year average.
 cost = pv_df.groupby(by='monthdate').agg({'cost_per_kw': 'mean',
                                           'cost_ex_subsid_per_kw': 'mean'})
@@ -44,6 +46,7 @@ plt.title('Average cost in $ per KWh in California')
 plt.ylabel('$ / KWh')
 plt.legend()
 plt.show()
+print('Third print')
 '''
 # Mapping the data
 import cartopy.crs as ccrs
@@ -161,6 +164,8 @@ results = model.fit()
 ypred = results.predict()
 results.summary()
 
+print('Fourth print')
+
 
 # Plot polynomial fit
 polynomial_features = PolynomialFeatures(degree=4)
@@ -175,6 +180,7 @@ plt.plot(X, ypred, label='LM fit')
 plt.plot(X, ypred_poly, label='Polynomial fit')
 plt.legend()
 plt.show()
+print('Fifth print')
 
 # Exercise 1.)
     # Estimate separate learning curve pre-2012 and post-2012. Can you do this with a single regression?
@@ -192,14 +198,17 @@ df_period_encoded = pd.DataFrame(period_encoded, columns = ["Period_"+str(int(i)
 pv_df_encoded = pd.concat([pv_df, df_period_encoded], axis=1)
 pv_df_encoded = pv_df_encoded[~pv_df_encoded.Period_0.isna()]
 # Create simple linear regression model of the data (without test and train data)
-regr = linear_model.LinearRegression() # Create regression element to in linear regression model
-x = pv_df_encoded[['log2_cum_cap', 'Period_0', 'Period_1']].dropna()
 y = pv_df_encoded['log2_cost_per_kw'].dropna()
-regr.fit(X=x, y=y) # Create model with X (predictors) and y (dependent variable)
-regr.coef_ # Display coefficients
-preds = regr.predict(x) # List predictions of stadium attendances
-regr.score(x, y) # In-sample R^2 score
-'''
+x = pv_df_encoded[['log2_cum_cap', 'Period_0', 'Period_1']].dropna()
+x = sm.add_constant(x)
+model = sm.OLS(y, x)
+results = model.fit()
+ypred = results.predict()
+results.summary()
+print(results.summary())
+print('Fifth print')
+
+
 # Exercise 2.)
     # Estimate the relationship between cumulative capacity and solar power costs with a local linear regression, or LOESS.
     # (See section 7.6 and 7.82 in ISL). How is local linear regression similar to and different from splines.
@@ -211,19 +220,30 @@ from skmisc.loess import loess
 import pylab as pylab
 
 # Inspired by stackoverlow
-loess = loess(X,Y)
-loess.fit()
-a = 5000
-pred_loess = loess.predict(X[:10], stderror=True)
-conf_loess = pred_loess.confidence()
-
+l = loess(X,Y)
+l.fit()
+a = 100000
+pred_loess = l.predict(X[:a])
 lowess = pred_loess.values
-ll = conf_loess.lower
-ul = conf_loess.upper
+# Manually compute standard errors using bootstrapping
+import bootstrapped.bootstrap as bs
+import bootstrapped.stats_functions as bs_stats
+# data sample
+# prepare bootstrap sample
+print(bs.bootstrap(lowess, stat_func=bs_stats.mean))
 
-pylab.plot(X[:a], Y[:a], '+')
-pylab.plot(X[:a], lowess)
-pylab.fill_between(X[:a],ll,ul,alpha=.33)
+print(bs.bootstrap(lowess, stat_func=bs_stats.std))
+
+
+pylab.plot(X[:a], Y[:a], '+', color='blue')
+pylab.plot(X[:a], lowess, color='orange')
+
+# Adding confidence intervals crashes the process for some reason. Can bootstrapping be used to find st.errors?
+#pred_loess = l.predict(X[:a], stderror=True)
+#conf_loess = pred_loess.confidence()
+#ll = conf_loess.lower
+#ul = conf_loess.upper
+#pylab.fill_between(X[:a],ll,ul,alpha=.33)
 pylab.show()
 
 
@@ -253,4 +273,19 @@ pylab.plot(x, y, '+')
 pylab.plot(x, lowess)
 pylab.fill_between(x,ll,ul,alpha=.33)
 pylab.show()
-'''
+print('Eight print')
+
+
+# List size of all variables
+import sys
+def sizeof_fmt(num, suffix='B'):
+    ''' by Fred Cirera,  https://stackoverflow.com/a/1094933/1870254, modified'''
+    for unit in ['','Ki','Mi','Gi','Ti','Pi','Ei','Zi']:
+        if abs(num) < 1024.0:
+            return "%3.1f %s%s" % (num, unit, suffix)
+        num /= 1024.0
+    return "%.1f %s%s" % (num, 'Yi', suffix)
+
+for name, size in sorted(((name, sys.getsizeof(value)) for name, value in locals().items()),
+                         key= lambda x: -x[1])[:10]:
+    print("{:>30}: {:>8}".format(name, sizeof_fmt(size)))
