@@ -206,7 +206,7 @@ results = model.fit()
 ypred = results.predict()
 results.summary()
 print(results.summary())
-print('Fifth print')
+print('Sixth print')
 
 
 # Exercise 2.)
@@ -223,20 +223,12 @@ import pylab as pylab
 l = loess(X,Y)
 l.fit()
 a = 100000
-pred_loess = l.predict(X[:a])
+X_loess = X[:a]
+Y_loess = Y[:a]
+pred_loess = l.predict(X_loess)
 lowess = pred_loess.values
-# Manually compute standard errors using bootstrapping
-import bootstrapped.bootstrap as bs
-import bootstrapped.stats_functions as bs_stats
-# data sample
-# prepare bootstrap sample
-print(bs.bootstrap(lowess, stat_func=bs_stats.mean))
-
-print(bs.bootstrap(lowess, stat_func=bs_stats.std))
-
-
-pylab.plot(X[:a], Y[:a], '+', color='blue')
-pylab.plot(X[:a], lowess, color='orange')
+pylab.plot(X_loess, Y_loess, '+', color='blue')
+pylab.plot(X_loess, lowess, color='orange')
 
 # Adding confidence intervals crashes the process for some reason. Can bootstrapping be used to find st.errors?
 #pred_loess = l.predict(X[:a], stderror=True)
@@ -252,40 +244,6 @@ fig = plt.figure()
 plt.scatter(np.log2(pv_df.cum_cap), np.log2(pv_df.cost_per_kw), c='black', alpha=0.1)
 plt.plot(X, ypred, label='LM fit')
 plt.plot(X, ypred_poly, label='Polynomial fit')
-plt.plot(X, pred_loess.values, label='LOESS')
+plt.plot(X_loess, lowess, label='LOESS')
 plt.legend()
 plt.show()
-
-############# Stackoverflow LOESS
-x = np.linspace(0,2*np.pi,100)
-y = np.sin(x) + np.random.random(100) * 0.4
-
-l = loess(x,y)
-l.fit()
-pred = l.predict(x, stderror=True)
-conf = pred.confidence()
-
-lowess = pred.values
-ll = conf.lower
-ul = conf.upper
-
-pylab.plot(x, y, '+')
-pylab.plot(x, lowess)
-pylab.fill_between(x,ll,ul,alpha=.33)
-pylab.show()
-print('Eight print')
-
-
-# List size of all variables
-import sys
-def sizeof_fmt(num, suffix='B'):
-    ''' by Fred Cirera,  https://stackoverflow.com/a/1094933/1870254, modified'''
-    for unit in ['','Ki','Mi','Gi','Ti','Pi','Ei','Zi']:
-        if abs(num) < 1024.0:
-            return "%3.1f %s%s" % (num, unit, suffix)
-        num /= 1024.0
-    return "%.1f %s%s" % (num, 'Yi', suffix)
-
-for name, size in sorted(((name, sys.getsizeof(value)) for name, value in locals().items()),
-                         key= lambda x: -x[1])[:10]:
-    print("{:>30}: {:>8}".format(name, sizeof_fmt(size)))
