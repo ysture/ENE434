@@ -44,7 +44,7 @@ plt.title('Average cost in $ per KWh in California')
 plt.ylabel('$ / KWh')
 plt.legend()
 plt.show()
-
+'''
 # Mapping the data
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
@@ -137,7 +137,7 @@ print_regions_and_provinces('Norway')
 print_regions_and_provinces('Denmark')
 print_regions_and_provinces('Sweden')
 print_regions_and_provinces('United States of America')
-
+'''
 # Estimating a learning curve
 # First we need to create a new variable representing the cumulative capacity (since 2006).
 cumsum_cap = pv_df.sort_values(by='date').agg({'nameplate': 'cumsum'})
@@ -179,8 +179,27 @@ plt.show()
 # Exercise 1.)
     # Estimate separate learning curve pre-2012 and post-2012. Can you do this with a single regression?
     # What would be the advantages and disadvantages of doing so?
-
-
+# Creating column denoting if an observation is pre or post 2012
+pv_df['Period'] = [0 if x.year < 2012 else 1 for x in pv_df.monthdate]
+# Creating dummy variables
+from sklearn.preprocessing import OneHotEncoder
+from sklearn import linear_model
+ohe = OneHotEncoder()
+period_encoded = ohe.fit_transform(pv_df.Period.values.reshape(-1,1)).toarray()
+ohe.categories_ # Displays all categories in the categorical columns that are now encoded
+# Add dummy columns back to original data frame
+df_period_encoded = pd.DataFrame(period_encoded, columns = ["Period_"+str(int(i)) for i in range(period_encoded.shape[1])])
+pv_df_encoded = pd.concat([pv_df, df_period_encoded], axis=1)
+pv_df_encoded = pv_df_encoded[~pv_df_encoded.Period_0.isna()]
+# Create simple linear regression model of the data (without test and train data)
+regr = linear_model.LinearRegression() # Create regression element to in linear regression model
+x = pv_df_encoded[['log2_cum_cap', 'Period_0', 'Period_1']].dropna()
+y = pv_df_encoded['log2_cost_per_kw'].dropna()
+regr.fit(X=x, y=y) # Create model with X (predictors) and y (dependent variable)
+regr.coef_ # Display coefficients
+preds = regr.predict(x) # List predictions of stadium attendances
+regr.score(x, y) # In-sample R^2 score
+'''
 # Exercise 2.)
     # Estimate the relationship between cumulative capacity and solar power costs with a local linear regression, or LOESS.
     # (See section 7.6 and 7.82 in ISL). How is local linear regression similar to and different from splines.
@@ -189,41 +208,25 @@ plt.show()
 from sklearn import linear_model
 from sklearn.preprocessing import OneHotEncoder
 from skmisc.loess import loess
-# Statsmodels
-lowess = sm.nonparametric.lowess
-z = lowess(Y, X, frac=1./3.)
+import pylab as pylab
 
 # Inspired by stackoverlow
 loess = loess(X,Y)
 loess.fit()
-pred = loess.predict(X, stderror=True)
-conf = pred.confidence()
+a = 5000
+pred_loess = loess.predict(X[:10], stderror=True)
+conf_loess = pred_loess.confidence()
 
-lowess = pred.values
-ll = conf.lower
-ul = conf.upper
+lowess = pred_loess.values
+ll = conf_loess.lower
+ul = conf_loess.upper
 
-pylab.plot(x, y, '+')
-pylab.plot(x, lowess)
-pylab.fill_between(x,ll,ul,alpha=.33)
+pylab.plot(X[:a], Y[:a], '+')
+pylab.plot(X[:a], lowess)
+pylab.fill_between(X[:a],ll,ul,alpha=.33)
 pylab.show()
 
-# Old
-inputs_l = loess.loess_inputs(X,Y)
-model_l = loess.loess(x=X,y=Y, weights=1/3)
-pred_l = loess.loess_outputs(10, 15, 10)
-model_fit_l = model_l.fit()
-model.inputs
-model.model
-dir(model)
-dir(pred)
-print(model.input_summary())
-print(model.__doc__)
-dir(model_fit)
-print(model_fit.__doc__)
 
-a = 50000
-pred_loess = model.predict(X[:a])
 # Plot lm fit, x4 polynomial fit and LOESS
 fig = plt.figure()
 plt.scatter(np.log2(pv_df.cum_cap), np.log2(pv_df.cost_per_kw), c='black', alpha=0.1)
@@ -232,9 +235,6 @@ plt.plot(X, ypred_poly, label='Polynomial fit')
 plt.plot(X, pred_loess.values, label='LOESS')
 plt.legend()
 plt.show()
-
-import numpy as np
-import pylab as pylab
 
 ############# Stackoverflow LOESS
 x = np.linspace(0,2*np.pi,100)
@@ -253,3 +253,4 @@ pylab.plot(x, y, '+')
 pylab.plot(x, lowess)
 pylab.fill_between(x,ll,ul,alpha=.33)
 pylab.show()
+'''
