@@ -1,5 +1,6 @@
-# File to import data used in final ENE434 Assignment
-
+'''File to import data used in final ENE434 Assignment
+Mangler: Alle PMI-tall samt gasspriser.
+'''
 ## PMI
 
 
@@ -7,3 +8,4 @@
 
 
 ## Oil and gas
+# WTI
