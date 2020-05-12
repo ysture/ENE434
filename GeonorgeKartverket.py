@@ -1,6 +1,13 @@
 
 ### Using shape files from kartverket
 # files
+import cartopy.crs as ccrs
+import cartopy.feature as cfeature
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import cartopy.io.shapereader as shpreader
+import geopandas as gpd
+
 shape_country = 'norway_shape/NOR_adm_shp/NOR_adm0'
 shape_county = 'norway_shape/NOR_adm_shp/NOR_adm1'
 shape_princ = 'norway_shape/kartverket/kommuner/kommuner'
