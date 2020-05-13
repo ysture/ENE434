@@ -33,6 +33,12 @@ pmi_nor_seasadj_list = read_pdf(
 pmi_nor = pmi_nor_list[0].reset_index().rename(columns={'index':'month'}).dropna()
 pmi_nor_seasadj = pmi_nor_seasadj_list[0].reset_index().rename(columns={'index':'month'}).dropna()
 
+pmi_us = pd.read_csv('https://raw.githubusercontent.com/ysture/ENE434/master/Final%20assignment/input/united-states.ism-manufacturing-pmi_07.csv',
+                     sep='\t',
+                     usecols=[0,1],
+                     header=0,
+                     names=['month', 'index_value'])
+
 ## Electricity
 
 el_uk = pd.read_csv(
