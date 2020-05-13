@@ -76,13 +76,37 @@ def import_nordpool():
     df = df.stack().str.replace(',','.').unstack()
     return df
 np_df = import_nordpool()
-
 np_df.columns
 
-el_nor = np_df[['Oslo', 'Kr.sand', 'Bergen', 'Molde', 'Tr.heim', 'Tromsø']]
-# Average
-el_nor.agg('avg')
-el_nor.mean(axis=1)
+# Norway
+el_nor = np_df[['Oslo', 'Kr.sand', 'Bergen', 'Molde', 'Tr.heim', 'Tromsø']].astype('float')
+el_nor = pd.concat([np_df.month, el_nor.mean(axis=1)], axis=1)
+el_nor.columns = ['month', 'eur_per_MWh']
+
+# Denmark
+el_dk = np_df[['DK1', 'DK2']].astype('float')
+el_dk = pd.concat([np_df.month, el_dk.mean(axis=1)], axis=1)
+el_dk.columns = ['month', 'eur_per_MWh']
+
+# Germany (only 9 months). Only available nine months for Netherlands as well
+el_ger = np_df[['DE-LU']].astype('float')
+el_ger = pd.concat([np_df.month, el_ger], axis=1)
+el_ger.columns = ['month', 'eur_per_MWh']
+
+# US
+us_filenames = os.listdir('input/ice_electric-historical')
+f=us_filenames[0]
+def import_us():
+    df = pd.DataFrame()
+    for f in us_filenames:
+        dfTemp = pd.read_csv('input/ice_electric-historical/{}'.format(f), engine='python')
+        dfTemp.columns = dfTemp.columns.str.lstrip()
+        dfTemp.columns = dfTemp.columns.str.rstrip()
+        dfTemp = dfTemp[['Price Hub', 'Trade Date', 'Wtd Avg Price $/MWh', 'Daily Volume MWh']]
+        df = pd.concat([df, dfTemp], axis=0)
+    return df
+
+us_df = import_us()
 
 
 ### Oil and gas
