@@ -146,6 +146,8 @@ el_ger.columns = ['month', 'eur_per_MWh']
 
 # US
 us_filenames = os.listdir('input/ice_electric-historical')
+
+
 def import_us():
     df = pd.DataFrame()
     for f in us_filenames:
@@ -155,22 +157,38 @@ def import_us():
         dfTemp = dfTemp[['Price Hub', 'Trade Date', 'Wtd Avg Price $/MWh', 'Daily Volume MWh']]
         dfTemp['Daily Volume MWh'] = dfTemp['Daily Volume MWh'].str.replace(" ", "")
         df = pd.concat([df, dfTemp], axis=0)
-    df = df.astype({'Wtd Avg Price $/MWh':'float', 'Daily Volume MWh':'int'})
+    df = df.astype({'Wtd Avg Price $/MWh': 'float', 'Daily Volume MWh': 'int'})
     df = df.reset_index(drop=True)
     return df
+
 
 us_df = import_us()
 
 us_df['Trade Date'] = pd.to_datetime(us_df['Trade Date'])
 us_df.sort_values(by='Trade Date')
 
-    # Calculating weighted Average
-g = us_df.groupby(by='Trade Date').agg({'Daily Volume MWh':'sum'}).rename(columns={'Daily Volume MWh':'sum_vol'}).reset_index()
+# Calculating weighted Average
+g = us_df.groupby(by='Trade Date').agg({'Daily Volume MWh': 'sum'}).rename(
+    columns={'Daily Volume MWh': 'daily_vol'}).reset_index()
 merged = pd.merge(us_df, g, on='Trade Date')
-weights = merged['Daily Volume MWh'] / merged['sum_vol']
+weights = merged['Daily Volume MWh'] / merged['daily_vol']
 merged['weighted_avg'] = merged['Wtd Avg Price $/MWh'] * weights
-el_us = merged.groupby(by='Trade Date').\
-    agg({'weighted_avg':'sum'}).reset_index().rename(columns={'Trade Date':'month','weighted_avg':'dollar_per_MWh'})
+merged = merged.groupby(by='Trade Date'). \
+    agg({'weighted_avg': 'sum', 'daily_vol': 'mean'}).reset_index().rename(columns={'Trade Date': 'month',
+                                                                                    'weighted_avg': 'usd_per_MWh'})
+merged['month_year'] = merged.month.dt.strftime('%m-%Y')
+j = merged.groupby(pd.Grouper(key='month', freq='M')).agg({'daily_vol': 'sum'}).rename(
+    columns={'daily_vol': 'monthly_vol'}).reset_index()
+j['month_year'] = j.month.dt.strftime('%m-%Y')
+merged = pd.merge(merged, j, on='month_year', how='left')
+weights = merged['daily_vol'] / merged['monthly_vol']
+merged['weighted_avg_monthly_usd'] = merged['usd_per_MWh'] * weights
+
+el_us = merged.groupby(by='month_year'). \
+    agg({'weighted_avg_monthly_usd': 'sum'}).reset_index().rename(columns={'month_year': 'month',
+                                                                           'weighted_avg_monthly_usd': 'usd_per_MWh'})
+el_us['month'] = pd.to_datetime(el_us.month, dayfirst=False)
+el_us.sort_values(by='month', inplace=True)
 
 # Convert electricity prices to USD
 el_uk = convert_currency(el_uk)
@@ -184,14 +202,16 @@ wti = pd.read_csv(
     'https://raw.githubusercontent.com/ysture/ENE434/master/Final%20assignment/input/Cushing_OK_WTI_Spot_Price_FOB.csv',
     skiprows=4,
     header=0,
-    names=['month', 'dollars_per_barrel'])
+    names=['month', 'usd_per_barrel'])
+wti['month'] = pd.to_datetime(wti.month)
 
 # Brent
 brent = pd.read_csv(
     'https://raw.githubusercontent.com/ysture/ENE434/master/Final%20assignment/input/Europe_Brent_Spot_Price_FOB.csv',
     skiprows=4,
     header=0,
-    names=['month', 'dollars_per_barrel'])
+    names=['month', 'usd_per_barrel'])
+brent['month'] = pd.to_datetime(brent.month)
 
 # Delete variables in environment not needed in the further analysis
 del([merged, pmi_nor_list, pmi_udk, us_filenames, weights, g, np_df, us_df, nordpool_files, pmi_nor_seasadj_list])
@@ -246,5 +266,31 @@ plt.legend(loc='best')
 plt.show()
 
 ### Electricity prices
-el_ger
-el_nor
+el_dict = {'Norway':el_nor,
+           'UK':el_uk,
+           'US':el_us,
+           'Denmark':el_dk}
+# In a single plot
+start_date = np.datetime64(date(2005, 1, 1))
+fig, ax = plt.subplots()
+i=0
+for i in range(len(el_dict.values())):
+    df = list(el_dict.values())[i]
+    df = df[df['month']> start_date]
+    df.dropna(inplace=True)
+    label = list(el_dict.keys())[i]
+    ax.plot(df['month'], df['usd_per_MWh'], label=label)
+    ax.set_title('$/MWh 2005-2020', fontdict={'size':18})
+plt.legend(loc='best')
+plt.show()
+
+
+# Oil price
+fig, ax = plt.subplots()
+ax.plot(brent.month, brent.usd_per_barrel, label='Brent')
+ax.plot(wti.month, wti.usd_per_barrel, label='WTI')
+ax.set_title('$/barrel 1987-2020')
+plt.legend(loc='best')
+plt.show()
+
+
