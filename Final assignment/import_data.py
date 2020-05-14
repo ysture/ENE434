@@ -12,15 +12,43 @@ from datetime import datetime, date
 #TODO Finn bedre kilde til strømpriser fra Tyskland (sjekk link fra Hendrik)
 
 # Importing currency exchange rates
+cur = pd.read_csv('https://raw.githubusercontent.com/ysture/ENE434/master/Final%20assignment/input/macrobond_currency.csv',
+                  header=0,
+                  names=['month', 'eur_per_usd', 'gbp_per_usd'])
+cur['month'] = pd.to_datetime(cur['month'])
+currency_dict = {'eur':'eur_per_usd', 'gbp':'gbp_per_usd'}
 
-
-### PMI
+# Helper functions
+# To remove projections from certain PMI tables
 def remove_projections(df):
     df['monthyear'] = df.month.dt.strftime('%m-%Y')
     for x in df.monthyear.unique():
         if sum(df.monthyear == x) > 1:
             df.drop(df.month[df. month == max(df.month[df.monthyear == x])].index, axis=0, inplace=True)
     return df
+
+# To convert electricity prices to USD
+def convert_currency(df):
+    for abbr in list(currency_dict.keys()):
+        if df.columns[1].startswith(abbr):
+            for index, row in df.iterrows():
+                convert_to = currency_dict[abbr]
+                period = np.datetime64(row.month)
+                try:
+                    exchange_rate = cur[convert_to][cur.month.isin([period])].values[0]
+                except IndexError:
+                    exchange_rate = np.nan
+                original_price = row[1]
+                df.loc[index, 'usd_per_MWh'] = original_price/exchange_rate
+    return df
+
+# To convert column types of PMI data frames
+def convert_dtypes(df):
+    df = df.astype({'pmi':'float'})
+    df['month'] = pd.to_datetime(df['month'])
+    return df
+
+### PMI
 # Germany
 pmi_ger = pd.read_csv('https://raw.githubusercontent.com/ysture/ENE434/master/Final%20assignment/input/germany.markit-manufacturing-pmi.csv',
                       sep='\t',
@@ -84,6 +112,7 @@ el_uk = pd.read_csv(
     'https://raw.githubusercontent.com/ysture/ENE434/master/Final%20assignment/input/UK_Electricityprices_Day_monthlyaverage.csv',
     header=0,
     names=['month', 'gbp_per_MWh'])
+el_uk['month'] = pd.to_datetime(el_uk['month'], dayfirst=True)
 
 ## NordPool (Norway, Netherlands and Germany)
 nordpool_files = [f for f in os.listdir('input/') if f.startswith('elspot-prices_')]
@@ -103,6 +132,7 @@ np_df['month'] = np_df['month'].apply(lambda x: datetime.strptime(x, '%y - %b'))
 el_nor = np_df[['Oslo', 'Kr.sand', 'Bergen', 'Molde', 'Tr.heim', 'Tromsø']].astype('float')
 el_nor = pd.concat([np_df.month, el_nor.mean(axis=1)], axis=1)
 el_nor.columns = ['month', 'eur_per_MWh']
+el_nor = convert_currency(el_nor)
 
 # Denmark
 el_dk = np_df[['DK1', 'DK2']].astype('float')
@@ -142,6 +172,11 @@ merged['weighted_avg'] = merged['Wtd Avg Price $/MWh'] * weights
 el_us = merged.groupby(by='Trade Date').\
     agg({'weighted_avg':'sum'}).reset_index().rename(columns={'Trade Date':'month','weighted_avg':'dollar_per_MWh'})
 
+# Convert electricity prices to USD
+el_uk = convert_currency(el_uk)
+el_nor = convert_currency(el_nor)
+el_dk = convert_currency(el_dk)
+el_ger = convert_currency(el_ger)
 
 ### Oil and gas
 # WTI
@@ -162,10 +197,6 @@ brent = pd.read_csv(
 del([merged, pmi_nor_list, pmi_udk, us_filenames, weights, g, np_df, us_df, nordpool_files, pmi_nor_seasadj_list])
 
 # Convert column types
-def convert_dtypes(df):
-    df = df.astype({'pmi':'float'})
-    df['month'] = pd.to_datetime(df['month'])
-    return df
 pmi_nor = convert_dtypes(pmi_nor)
 pmi_nor_seasadj = convert_dtypes(pmi_nor_seasadj)
 pmi_dk = convert_dtypes(pmi_dk)
@@ -215,4 +246,5 @@ plt.legend(loc='best')
 plt.show()
 
 ### Electricity prices
+el_ger
 el_nor
