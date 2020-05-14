@@ -94,6 +94,7 @@ def import_nordpool():
     return df
 np_df = import_nordpool()
 np_df.columns
+np_df['month'] = np_df['month'].apply(lambda x: datetime.strptime(x, '%y - %b'))
 
 # Norway
 el_nor = np_df[['Oslo', 'Kr.sand', 'Bergen', 'Molde', 'Tr.heim', 'Tromsø']].astype('float')
@@ -211,4 +212,4 @@ plt.legend(loc='best')
 plt.show()
 
 ### Electricity prices
-el_ger
+el_nor
