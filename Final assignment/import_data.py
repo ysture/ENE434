@@ -93,21 +93,36 @@ el_ger = np_df[['DE-LU']].astype('float')
 el_ger = pd.concat([np_df.month, el_ger], axis=1)
 el_ger.columns = ['month', 'eur_per_MWh']
 
-# US
+# US. First files from 2001-2013 are imported, thereafter files from 2013-2020.
 us_filenames = os.listdir('input/ice_electric-historical')
 f=us_filenames[0]
 def import_us():
     df = pd.DataFrame()
     for f in us_filenames:
+        print(f)
         dfTemp = pd.read_csv('input/ice_electric-historical/{}'.format(f), engine='python')
         dfTemp.columns = dfTemp.columns.str.lstrip()
         dfTemp.columns = dfTemp.columns.str.rstrip()
         dfTemp = dfTemp[['Price Hub', 'Trade Date', 'Wtd Avg Price $/MWh', 'Daily Volume MWh']]
+        dfTemp['Daily Volume MWh'] = dfTemp['Daily Volume MWh'].str.replace(" ", "")
         df = pd.concat([df, dfTemp], axis=0)
+    df = df.astype({'Wtd Avg Price $/MWh':'float', 'Daily Volume MWh':'int'})
+    df = df.reset_index(drop=True)
     return df
 
 us_df = import_us()
 
+us_df['Trade Date'] = pd.to_datetime(us_df['Trade Date'])
+us_df.sort_values(by='Trade Date')
+
+# Trying to get weighted average
+g = us_df.groupby(by='Trade Date').agg({'Daily Volume MWh':'sum'}).rename(columns={'Daily Volume MWh':'sum_vol'}).reset_index()
+merged = pd.merge(us_df, g, on='Trade Date')
+weights = merged['Daily Volume MWh'] / merged['sum_vol']
+merged['weighted_avg'] = merged['Wtd Avg Price $/MWh'] * weights
+merged.sort_values(by='Trade Date')
+print(merged.sort_values(by='Trade Date').head(20).to_string())
+el_us_13 = merged.groupby(by='Trade Date').agg({'weighted_avg':'sum'}).rename(columns={'weighted_avg':'dollar_per_MWh'}).reset_index()
 
 ### Oil and gas
 # WTI
