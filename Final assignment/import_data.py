@@ -11,6 +11,9 @@ from datetime import datetime, date
 #TODO Shift måned for tysk PMI én måned bakover
 #TODO Finn bedre kilde til strømpriser fra Tyskland (sjekk link fra Hendrik)
 
+# Importing currency exchange rates
+
+
 ### PMI
 def remove_projections(df):
     df['monthyear'] = df.month.dt.strftime('%m-%Y')
