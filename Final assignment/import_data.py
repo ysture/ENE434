@@ -48,6 +48,26 @@ def convert_dtypes(df):
     df['month'] = pd.to_datetime(df['month'])
     return df
 
+# Shifting month one month back (for UK and Germany PMI data)
+def shift_month_back(df):
+    shifted_back_list = []
+    for r in df.month:
+        m = r.month
+        y = r.year
+        if len(str(m)) < 2 or m==10:
+            m_new = '0{}'.format(m-1)
+        else:
+            m_new = m-1
+        if m == 1:
+            y_new = y-1
+        else:
+            y_new = y
+        if m_new == '00':
+            m_new = 12
+        new_date = np.datetime64('{}-{}'.format(y_new, m_new))
+        shifted_back_list.append(new_date)
+    return shifted_back_list
+
 ### PMI
 # Germany
 pmi_ger = pd.read_csv('https://raw.githubusercontent.com/ysture/ENE434/master/Final%20assignment/input/germany.markit-manufacturing-pmi.csv',
@@ -57,6 +77,13 @@ pmi_ger = pd.read_csv('https://raw.githubusercontent.com/ysture/ENE434/master/Fi
                       names=['month', 'pmi'])
 pmi_ger['month'] = pd.to_datetime(pmi_ger['month'], dayfirst=True)
 pmi_ger = remove_projections(pmi_ger)
+
+
+# Shifting month one month back
+pmi_ger['month'] = shift_month_back(pmi_ger)
+
+
+
 
 ## Norway
 # Ordinary
@@ -89,6 +116,8 @@ pmi_uk = pd.read_csv('https://raw.githubusercontent.com/ysture/ENE434/master/Fin
                      names=['month', 'pmi'])
 pmi_uk['month'] = pd.to_datetime(pmi_uk['month'], dayfirst=True)
 pmi_uk = remove_projections(pmi_uk)
+pmi_uk['month'] = shift_month_back(pmi_uk)
+
 
 ## Denmark and US
 pmi_udk = pd.read_csv('https://raw.githubusercontent.com/ysture/ENE434/master/Final%20assignment/input/us_dk_pmi.csv',
@@ -285,7 +314,7 @@ plt.legend(loc='best')
 plt.show()
 
 
-# Oil price
+### Oil prices
 fig, ax = plt.subplots()
 ax.plot(brent.month, brent.usd_per_barrel, label='Brent')
 ax.plot(wti.month, wti.usd_per_barrel, label='WTI')
