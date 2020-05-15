@@ -1,5 +1,5 @@
 '''File to import data used in final ENE434 Assignment
-Mangler: Alle PMI-tall samt gasspriser.
+Mangler: Gasspriser
 '''
 import pandas as pd
 import numpy as np
@@ -8,7 +8,6 @@ import os
 import matplotlib.pyplot as plt
 from datetime import datetime, date
 
-#TODO Shift måned for tysk PMI én måned bakover
 #TODO Finn bedre kilde til strømpriser fra Tyskland (sjekk link fra Hendrik)
 
 # Importing currency exchange rates
@@ -78,11 +77,8 @@ pmi_ger = pd.read_csv('https://raw.githubusercontent.com/ysture/ENE434/master/Fi
 pmi_ger['month'] = pd.to_datetime(pmi_ger['month'], dayfirst=True)
 pmi_ger = remove_projections(pmi_ger)
 
-
 # Shifting month one month back
 pmi_ger['month'] = shift_month_back(pmi_ger)
-
-
 
 
 ## Norway
@@ -322,4 +318,6 @@ ax.set_title('$/barrel 1987-2020')
 plt.legend(loc='best')
 plt.show()
 
-
+'''
+Investigating seasonality for all time series, should any of the series be seasonally adjusted?
+'''
