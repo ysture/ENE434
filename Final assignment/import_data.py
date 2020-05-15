@@ -7,6 +7,8 @@ from tabula import read_pdf
 import os
 import matplotlib.pyplot as plt
 from datetime import datetime, date
+from statsmodels.tsa.stattools import adfuller
+from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 
 #TODO Finn bedre kilde til strømpriser fra Tyskland (sjekk link fra Hendrik)
 
@@ -317,7 +319,60 @@ ax.plot(wti.month, wti.usd_per_barrel, label='WTI')
 ax.set_title('$/barrel 1987-2020')
 plt.legend(loc='best')
 plt.show()
+from statsmodels.tsa.seasonal import STL
+from statsmodels.tsa.seasonal import seasonal_decompose
 
 '''
 Investigating seasonality for all time series, should any of the series be seasonally adjusted?
+1. PMI
+2. Electricity
+3. Oil prices
 '''
+STL(pmi_nor.pmi, seasonal=13)
+decomp = seasonal_decompose(pmi_nor.pmi, period=12)
+
+fig, axes = plt.subplots(ncols=3, nrows=len(pmi_dict.keys()))
+for i in range(len(pmi_dict.values())):
+    df = list(pmi_dict.values())[i]
+    decomp = seasonal_decompose(df['pmi'], period=12)
+    for row in axes:
+        for col in row:
+            ax.plot(df['month'], decomp.trend)
+plt.show()
+
+'''
+Investigating autocorrelation for all time series, should any of the series be seasonally adjusted?
+1. PMI
+2. Electricity
+3. Oil prices
+'''
+# Plotting ACF and PACF
+fig, axes = plt.subplots(nrows=5, ncols=2)
+plt.subplots_adjust(hspace=0.4)
+title_size = 15
+title_type = 'bold'
+ylabel_size = 12
+
+plot_pacf(pmi_dk.pmi , ax=axes[0,0], title='DK')
+plot_pacf(pmi_ger.pmi, ax=axes[1,0], title='Germany')
+plot_pacf(pmi_nor.pmi, ax=axes[2,0], title='Norway')
+plot_pacf(pmi_uk.pmi , ax=axes[3,0], title='UK')
+plot_pacf(pmi_us.pmi, ax=axes[4,0], title='US')
+
+plot_acf(pmi_dk.pmi,  ax=axes[0,1], title='DK')
+plot_acf(pmi_ger.pmi, ax=axes[1,1], title='Germany')
+plot_acf(pmi_nor.pmi, ax=axes[2,1], title='Norway')
+plot_acf(pmi_uk.pmi,  ax=axes[3,1], title='UK')
+plot_acf(pmi_us.pmi,  ax=axes[4,1], title='US')
+
+plt.suptitle('          Partial            PMI      Autocorrelation', y = 0.98, size=19)
+
+fig.align_ylabels()
+plt.show()
+
+print('ADFuller test to check for stationarity (H0 is that there is non-stationarity):')
+for i in range(len((pmi_dict.values()))):
+    df = list(pmi_dict.values())[i]
+    name = list(pmi_dict.keys())[i]
+    p_val = adfuller(df['pmi'])[1]
+    print('P-value of {c}: {p}'.format(c=name, p=p_val))
