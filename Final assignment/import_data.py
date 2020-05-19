@@ -73,6 +73,45 @@ def shift_month_back(df):
         shifted_back_list.append(new_date)
     return shifted_back_list
 
+# Creating function to plot forecasts
+def forecast_plot(dataframe, arima_mod, forecasts=12, outer_interval=0.95, inner_interval=0.8, y_label="", x_label="", exogenous=None):
+    # Forecast ("The result of the forecast() function is an array containing the forecast value, the standard error of the forecast, and the confidence interval information.")
+    res = arima_mod.fit(maxiter=100, disp=0)
+
+    if exogenous is not None:
+        f = results_auto.get_forecast(forecasts, exog=exogenous.iloc[-forecasts:,:].astype('float')).summary_frame()
+    else:
+        f = res.get_forecast(forecasts).summary_frame()
+
+    # Forecast index
+    f_ix = f.index
+    # Prediction mean
+    pred_mean = f['mean']
+    # Confidence intervals
+    under_outer = res.get_forecast(forecasts).conf_int(alpha=1-outer_interval).iloc[:,0]
+    over_outer = res.get_forecast(forecasts).conf_int(alpha=1-outer_interval).iloc[:,1]
+    under_inner = res.get_forecast(forecasts).conf_int(alpha=1-inner_interval).iloc[:,0]
+    over_inner = res.get_forecast(forecasts).conf_int(alpha=1-inner_interval).iloc[:,1]
+
+    # res3.predict()
+    fig, ax = plt.subplots(figsize=(16,8))
+    ax.plot(dataframe.index, dataframe, color='black', label='Training set')
+    ax.plot(f_ix, pred_mean, color='blue', label='Forecast')
+    # Confidence intervals
+    plt.fill_between(f_ix, under_outer, over_outer, color='b', alpha=0.2, label='{}% confidence interval'.format(int(outer_interval*100)))
+    plt.fill_between(f_ix, under_inner, over_inner, color='b', alpha=0.4, label='{}% confidence interval'.format(int(inner_interval*100)))
+
+
+    order = arima_mod.order
+    seas_order = arima_mod.seasonal_order
+    plt.title('Forecasts from ARIMA{}{}'.format(order, seas_order),
+              fontdict={'size':19}, loc='left')
+    plt.legend(loc='upper center')
+    plt.ylabel(y_label)
+    plt.xlabel(x_label)
+    plt.show()
+
+
 ### PMI
 # Germany
 pmi_ge = pd.read_csv('https://raw.githubusercontent.com/ysture/ENE434/master/Final%20assignment/input/germany.markit-manufacturing-pmi.csv',
@@ -258,29 +297,7 @@ pmi_ge = convert_dtypes(pmi_ge)
 pmi_uk = convert_dtypes(pmi_uk)
 pmi_us = convert_dtypes(pmi_us)
 
-# Creating lagged series
-brent['lag_1'] = brent['usd_per_barrel'].shift(-1)
-brent['lag_2'] = brent['usd_per_barrel'].shift(-2)
-wti['lag_1'] = wti['usd_per_barrel'].shift(-1)
-wti['lag_2'] = wti['usd_per_barrel'].shift(-2)
 
-el_no['lag_1'] = el_no['usd_per_MWh'].shift(-1)
-el_no['lag_2'] = el_no['usd_per_MWh'].shift(-2)
-el_dk['lag_1'] = el_dk['usd_per_MWh'].shift(-1)
-el_dk['lag_2'] = el_dk['usd_per_MWh'].shift(-2)
-el_uk['lag_1'] = el_uk['usd_per_MWh'].shift(-1)
-el_uk['lag_2'] = el_uk['usd_per_MWh'].shift(-2)
-el_us['lag_1'] = el_us['usd_per_MWh'].shift(-1)
-el_us['lag_2'] = el_us['usd_per_MWh'].shift(-2)
-el_ge['lag_1'] = el_ge['usd_per_MWh'].shift(-1)
-el_ge['lag_2'] = el_ge['usd_per_MWh'].shift(-2)
-
-
-# Making data for all countries the same length. The length of the time series
-# is decided by the shortest time series length for each country
-    # Norway
-el_no.shape
-pmi_no.shape
 '''
 Descriptive statistics in this order:
 1. PMI
@@ -375,6 +392,7 @@ def plot_decomposition(df, column_index, plot_title):
         df = df.dropna()
         value_column = df.iloc[:, column_index]
         decomp = seasonal_decompose(value_column, period=12)
+        #TODO prøv med period=52 siden man har ukentlig data
 
         fig, axes = plt.subplots(nrows=4, ncols=1)
 
@@ -467,13 +485,96 @@ title_type = 'bold'
 ylabel_size = 12
 plot_autocorrelation(oil_dict, 1)
 
+'''
+Preparing data for modelling
+'''
+
+# Preparing data for modelling
+# Creating lagged series
+brent['brent_lag_1'] = brent['usd_per_barrel'].shift(-1)
+brent['brent_lag_2'] = brent['usd_per_barrel'].shift(-2)
+wti['wti_lag_1'] = wti['usd_per_barrel'].shift(-1)
+wti['wti_lag_2'] = wti['usd_per_barrel'].shift(-2)
+
+el_no['el_lag_1'] = el_no['usd_per_MWh'].shift(-1)
+el_no['el_lag_2'] = el_no['usd_per_MWh'].shift(-2)
+el_dk['el_lag_1'] = el_dk['usd_per_MWh'].shift(-1)
+el_dk['el_lag_2'] = el_dk['usd_per_MWh'].shift(-2)
+el_uk['el_lag_1'] = el_uk['usd_per_MWh'].shift(-1)
+el_uk['el_lag_2'] = el_uk['usd_per_MWh'].shift(-2)
+el_us['el_lag_1'] = el_us['usd_per_MWh'].shift(-1)
+el_us['el_lag_2'] = el_us['usd_per_MWh'].shift(-2)
+el_ge['el_lag_1'] = el_ge['usd_per_MWh'].shift(-1)
+el_ge['el_lag_2'] = el_ge['usd_per_MWh'].shift(-2)
+
+# Making data for all countries the same length. The length of the time series
+# is decided by the shortest time series length for each country
+pmi_no = pmi_no[pmi_no.month.isin(el_no.month)]
+pmi_dk = pmi_dk[pmi_dk.month.isin(el_dk.month)]
+pmi_uk = pmi_uk[pmi_uk.month.isin(el_uk.month)]
+pmi_us = pmi_us[pmi_us.month.isin(el_us.month)]
+
+# Making date index for all dataframes
+def month_as_index(df):
+    df.index = df.month
+    df.drop(['month'], inplace=True, axis=1)
+    return df
+
+pmi_no = month_as_index(pmi_no)
+pmi_dk = month_as_index(pmi_dk)
+pmi_us = month_as_index(pmi_us)
+pmi_uk = month_as_index(pmi_uk)
+
+el_dk = month_as_index(el_dk)
+el_no = month_as_index(el_no)
+el_uk = month_as_index(el_uk)
+el_us = month_as_index(el_us)
+el_ge = month_as_index(el_ge)
+
+brent = month_as_index(brent)
+wti = month_as_index(wti)
+
+# Creating one dataframe for each country to include exogenous variables and PMI in the same df
+df_no = pd.merge(pmi_no, el_no, how='left', left_index=True, right_index=True)
+df_no = pd.merge(df_no, brent, how='left', left_index=True, right_index=True)
+df_no = pd.merge(df_no, wti, how='left', left_index=True, right_index=True)
+df_no = df_no.dropna()
 
 '''
 Developing dynamic models (SARIMA with explanatory variables) 
 '''
-
-
-model_auto = auto_arima(cons_dk, m = 7,
+# Norway
+model_auto = auto_arima(pmi_no.pmi, m = 52,
                         max_order = None, max_p = 5, max_q = 5, max_d = 1, max_P = 3, max_Q = 5, max_D = 2,
                         maxiter = 50, alpha = 0.05, n_jobs = -1, trend = 'ct', information_criterion = 'aic',
-                        out_of_sample = int(len(cons_dk*0.2)))
+                        out_of_sample = int(pmi_no.shape[0]*0.2))
+model_auto.summary()
+arima_auto = SARIMAX(pmi_no, order=(3,0,3))
+results_auto = arima_auto.fit(maxiter=100, disp=0)
+forecast_plot(pmi_no, arima_auto, forecasts=12, y_label="PMI")
+
+# Norway with exogeneous variables
+from pmdarima.arima.utils import ndiffs
+from pmdarima.arima.utils import nsdiffs
+
+# Formally prove that only one differencing is needed
+df_no = df_no.dropna()
+ndiffs(df_no.pmi, test='adf')
+nsdiffs(df_no.pmi, test='ch', m=52)
+nsdiffs(df_no.pmi, test='ch', m=4)
+
+fig, ax = plt.subplots()
+ax.plot(df_no.pmi_diff)
+plt.show()
+
+exog = df_no.drop(['eur_per_MWh', 'pmi'], axis=1)
+model_auto = auto_arima(df_no.pmi, m = 52, exogenous=exog.to_numpy(),
+                        max_order = None, max_p = 5, max_q = 5, max_d = 4, max_P = 3, max_Q = 5, max_D = 4,
+                        maxiter = 50, alpha = 0.05, n_jobs = -1, trend = 'ct', information_criterion = 'aic',
+                        out_of_sample = int(df_no.shape[0]*0.2))
+model_auto.summary()
+arima_auto = SARIMAX(df_no.pmi, order=(2,0,0), seasonal_order=(1,0,1,52), exog=exog.astype('float'))
+results_auto = arima_auto.fit(maxiter=300)
+forecast_plot(df_no.pmi, arima_auto, forecasts=30, y_label="PMI", exogenous=exog)
+
+results_auto.get_forecast(12, exog=exog.iloc[-12:,:].astype('float')).summary_frame()
