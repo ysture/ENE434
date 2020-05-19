@@ -158,23 +158,25 @@ def import_nordpool():
 np_df = import_nordpool()
 np_df.columns
 np_df['month'] = np_df['month'].apply(lambda x: datetime.strptime(x, '%y - %b'))
-np_df.dropna(inplace=True)
 
 # Norway
 el_no = np_df[['Oslo', 'Kr.sand', 'Bergen', 'Molde', 'Tr.heim', 'Tromsø']].astype('float')
 el_no = pd.concat([np_df.month, el_no.mean(axis=1)], axis=1)
 el_no.columns = ['month', 'eur_per_MWh']
 el_no = convert_currency(el_no)
+el_no.dropna(inplace=True)
 
 # Denmark
 el_dk = np_df[['DK1', 'DK2']].astype('float')
 el_dk = pd.concat([np_df.month, el_dk.mean(axis=1)], axis=1)
 el_dk.columns = ['month', 'eur_per_MWh']
+el_dk.dropna(inplace=True)
 
 # Germany (only 9 months). Only available nine months for Netherlands as well
 el_ge = np_df[['DE-LU']].astype('float')
 el_ge = pd.concat([np_df.month, el_ge], axis=1)
 el_ge.columns = ['month', 'eur_per_MWh']
+el_ge.dropna(inplace=True)
 
 # US
 us_filenames = os.listdir('input/ice_electric-historical')
@@ -255,6 +257,24 @@ pmi_dk = convert_dtypes(pmi_dk)
 pmi_ge = convert_dtypes(pmi_ge)
 pmi_uk = convert_dtypes(pmi_uk)
 pmi_us = convert_dtypes(pmi_us)
+
+# Creating lagged series
+brent['lag_1'] = brent['usd_per_barrel'].shift(-1)
+brent['lag_2'] = brent['usd_per_barrel'].shift(-2)
+wti['lag_1'] = wti['usd_per_barrel'].shift(-1)
+wti['lag_2'] = wti['usd_per_barrel'].shift(-2)
+
+el_no['lag_1'] = el_no['usd_per_MWh'].shift(-1)
+el_no['lag_2'] = el_no['usd_per_MWh'].shift(-2)
+el_dk['lag_1'] = el_dk['usd_per_MWh'].shift(-1)
+el_dk['lag_2'] = el_dk['usd_per_MWh'].shift(-2)
+el_uk['lag_1'] = el_uk['usd_per_MWh'].shift(-1)
+el_uk['lag_2'] = el_uk['usd_per_MWh'].shift(-2)
+el_us['lag_1'] = el_us['usd_per_MWh'].shift(-1)
+el_us['lag_2'] = el_us['usd_per_MWh'].shift(-2)
+el_ge['lag_1'] = el_ge['usd_per_MWh'].shift(-1)
+el_ge['lag_2'] = el_ge['usd_per_MWh'].shift(-2)
+
 
 # Making data for all countries the same length. The length of the time series
 # is decided by the shortest time series length for each country
@@ -388,7 +408,6 @@ plot_decomposition(pmi_ge, 1, 'Germany PMI')
 plot_decomposition(el_dk, 2, 'Electricity Denmark')
 plot_decomposition(el_no, 2, 'Electricity Norway')
 plot_decomposition(el_uk, 2, 'Electricity UK')
-plot_decomposition(el_ge, 2, 'Electricity Germany')
 plot_decomposition(el_us, 1, 'Electricity US')
 
 # Oil
