@@ -80,18 +80,28 @@ def forecast_plot(dataframe, arima_mod, forecasts=12, outer_interval=0.95, inner
 
     if exogenous is not None:
         f = results_auto.get_forecast(forecasts, exog=exogenous.iloc[-forecasts:,:].astype('float')).summary_frame()
+
+        # Forecast index
+        f_ix = f.index
+        # Prediction mean
+        pred_mean = f['mean']
+        # Confidence intervals
+        under_outer = res.get_forecast(forecasts, exog=exogenous.iloc[-forecasts:,:].astype('float')).conf_int(alpha=1-outer_interval).iloc[:,0]
+        over_outer = res.get_forecast(forecasts , exog=exogenous.iloc[-forecasts:,:].astype('float')).conf_int(alpha=1-outer_interval).iloc[:,1]
+        under_inner = res.get_forecast(forecasts, exog=exogenous.iloc[-forecasts:,:].astype('float')).conf_int(alpha=1-inner_interval).iloc[:,0]
+        over_inner = res.get_forecast(forecasts , exog=exogenous.iloc[-forecasts:,:].astype('float')).conf_int(alpha=1-inner_interval).iloc[:,1]
     else:
         f = res.get_forecast(forecasts).summary_frame()
 
-    # Forecast index
-    f_ix = f.index
-    # Prediction mean
-    pred_mean = f['mean']
-    # Confidence intervals
-    under_outer = res.get_forecast(forecasts).conf_int(alpha=1-outer_interval).iloc[:,0]
-    over_outer = res.get_forecast(forecasts).conf_int(alpha=1-outer_interval).iloc[:,1]
-    under_inner = res.get_forecast(forecasts).conf_int(alpha=1-inner_interval).iloc[:,0]
-    over_inner = res.get_forecast(forecasts).conf_int(alpha=1-inner_interval).iloc[:,1]
+        # Forecast index
+        f_ix = f.index
+        # Prediction mean
+        pred_mean = f['mean']
+        # Confidence intervals
+        under_outer = res.get_forecast(forecasts).conf_int(alpha=1-outer_interval).iloc[:,0]
+        over_outer = res.get_forecast(forecasts).conf_int(alpha=1-outer_interval).iloc[:,1]
+        under_inner = res.get_forecast(forecasts).conf_int(alpha=1-inner_interval).iloc[:,0]
+        over_inner = res.get_forecast(forecasts).conf_int(alpha=1-inner_interval).iloc[:,1]
 
     # res3.predict()
     fig, ax = plt.subplots(figsize=(16,8))
@@ -577,4 +587,6 @@ arima_auto = SARIMAX(df_no.pmi, order=(2,0,0), seasonal_order=(1,0,1,52), exog=e
 results_auto = arima_auto.fit(maxiter=300)
 forecast_plot(df_no.pmi, arima_auto, forecasts=30, y_label="PMI", exogenous=exog)
 
-results_auto.get_forecast(12, exog=exog.iloc[-12:,:].astype('float')).summary_frame()
+# TODO Lag et test set for å predikere 2019.
+# TODO Lag dynamic models for de andre landene
+# TODO Etter at alt annet (inkluder andre ML-modeller) er ferdig: Prediker resten av 2020 (om det er plass)
