@@ -9,6 +9,10 @@ import matplotlib.pyplot as plt
 from datetime import datetime, date
 from statsmodels.tsa.stattools import adfuller
 from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
+from statsmodels.tsa.seasonal import STL
+from statsmodels.tsa.seasonal import seasonal_decompose
+from statsmodels.tsa.statespace.sarimax import SARIMAX
+from pmdarima.arima import auto_arima
 
 #TODO Finn bedre kilde til strømpriser fra Tyskland (sjekk link fra Hendrik)
 
@@ -71,21 +75,21 @@ def shift_month_back(df):
 
 ### PMI
 # Germany
-pmi_ger = pd.read_csv('https://raw.githubusercontent.com/ysture/ENE434/master/Final%20assignment/input/germany.markit-manufacturing-pmi.csv',
+pmi_ge = pd.read_csv('https://raw.githubusercontent.com/ysture/ENE434/master/Final%20assignment/input/germany.markit-manufacturing-pmi.csv',
                       sep='\t',
                       usecols=[0,1],
                       header=0,
                       names=['month', 'pmi'])
-pmi_ger['month'] = pd.to_datetime(pmi_ger['month'], dayfirst=True)
-pmi_ger = remove_projections(pmi_ger)
+pmi_ge['month'] = pd.to_datetime(pmi_ge['month'], dayfirst=True)
+pmi_ge = remove_projections(pmi_ge)
 
 # Shifting month one month back
-pmi_ger['month'] = shift_month_back(pmi_ger)
+pmi_ge['month'] = shift_month_back(pmi_ge)
 
 
 ## Norway
 # Ordinary
-pmi_nor_list = read_pdf(
+pmi_no_list = read_pdf(
     'C:\\Users\\Yngve\\Google Drive\\Skolerelatert\\NHH\\Master\\ENE434\\Final assignment\\input\\PMI_norway_pdf.pdf',
     pages=[1, 2, 3, 4, 5], multiple_tables=False,
     pandas_options={'header': None,
@@ -93,7 +97,7 @@ pmi_nor_list = read_pdf(
                     'names': ['month', 'pmi']})
 
 # Seasonally adjusted
-pmi_nor_seasadj_list = read_pdf(
+pmi_no_seasadj_list = read_pdf(
     'C:\\Users\\Yngve\\Google Drive\\Skolerelatert\\NHH\\Master\\ENE434\\Final assignment\\input\\PMI_norway_pdf.pdf',
     pages=[6, 7, 8, 9, 10], multiple_tables=False,
     pandas_options={'header': None,
@@ -101,10 +105,10 @@ pmi_nor_seasadj_list = read_pdf(
                     'names': ['month', 'pmi']})
 
 
-pmi_nor = pmi_nor_list[0].dropna()
-pmi_nor['month'] = pd.to_datetime(pmi_nor['month'], dayfirst=True)
-pmi_nor_seasadj = pmi_nor_seasadj_list[0].dropna()
-pmi_nor_seasadj['month'] = pd.to_datetime(pmi_nor_seasadj['month'], dayfirst=True)
+pmi_no = pmi_no_list[0].dropna()
+pmi_no['month'] = pd.to_datetime(pmi_no['month'], dayfirst=True)
+pmi_no_seasadj = pmi_no_seasadj_list[0].dropna()
+pmi_no_seasadj['month'] = pd.to_datetime(pmi_no_seasadj['month'], dayfirst=True)
 
 # UK
 pmi_uk = pd.read_csv('https://raw.githubusercontent.com/ysture/ENE434/master/Final%20assignment/input/united-kingdom.markit-manufacturing-pmi.csv',
@@ -154,12 +158,13 @@ def import_nordpool():
 np_df = import_nordpool()
 np_df.columns
 np_df['month'] = np_df['month'].apply(lambda x: datetime.strptime(x, '%y - %b'))
+np_df.dropna(inplace=True)
 
 # Norway
-el_nor = np_df[['Oslo', 'Kr.sand', 'Bergen', 'Molde', 'Tr.heim', 'Tromsø']].astype('float')
-el_nor = pd.concat([np_df.month, el_nor.mean(axis=1)], axis=1)
-el_nor.columns = ['month', 'eur_per_MWh']
-el_nor = convert_currency(el_nor)
+el_no = np_df[['Oslo', 'Kr.sand', 'Bergen', 'Molde', 'Tr.heim', 'Tromsø']].astype('float')
+el_no = pd.concat([np_df.month, el_no.mean(axis=1)], axis=1)
+el_no.columns = ['month', 'eur_per_MWh']
+el_no = convert_currency(el_no)
 
 # Denmark
 el_dk = np_df[['DK1', 'DK2']].astype('float')
@@ -167,9 +172,9 @@ el_dk = pd.concat([np_df.month, el_dk.mean(axis=1)], axis=1)
 el_dk.columns = ['month', 'eur_per_MWh']
 
 # Germany (only 9 months). Only available nine months for Netherlands as well
-el_ger = np_df[['DE-LU']].astype('float')
-el_ger = pd.concat([np_df.month, el_ger], axis=1)
-el_ger.columns = ['month', 'eur_per_MWh']
+el_ge = np_df[['DE-LU']].astype('float')
+el_ge = pd.concat([np_df.month, el_ge], axis=1)
+el_ge.columns = ['month', 'eur_per_MWh']
 
 # US
 us_filenames = os.listdir('input/ice_electric-historical')
@@ -219,9 +224,9 @@ el_us.sort_values(by='month', inplace=True)
 
 # Convert electricity prices to USD
 el_uk = convert_currency(el_uk)
-el_nor = convert_currency(el_nor)
+el_no = convert_currency(el_no)
 el_dk = convert_currency(el_dk)
-el_ger = convert_currency(el_ger)
+el_ge = convert_currency(el_ge)
 
 ### Oil and gas
 # WTI
@@ -241,16 +246,21 @@ brent = pd.read_csv(
 brent['month'] = pd.to_datetime(brent.month)
 
 # Delete variables in environment not needed in the further analysis
-del([merged, pmi_nor_list, pmi_udk, us_filenames, weights, g, np_df, us_df, nordpool_files, pmi_nor_seasadj_list])
+del([merged, pmi_no_list, pmi_udk, us_filenames, weights, g, np_df, us_df, nordpool_files, pmi_no_seasadj_list])
 
 # Convert column types
-pmi_nor = convert_dtypes(pmi_nor)
-pmi_nor_seasadj = convert_dtypes(pmi_nor_seasadj)
+pmi_no = convert_dtypes(pmi_no)
+pmi_no_seasadj = convert_dtypes(pmi_no_seasadj)
 pmi_dk = convert_dtypes(pmi_dk)
-pmi_ger = convert_dtypes(pmi_ger)
+pmi_ge = convert_dtypes(pmi_ge)
 pmi_uk = convert_dtypes(pmi_uk)
 pmi_us = convert_dtypes(pmi_us)
 
+# Making data for all countries the same length. The length of the time series
+# is decided by the shortest time series length for each country
+    # Norway
+el_no.shape
+pmi_no.shape
 '''
 Descriptive statistics in this order:
 1. PMI
@@ -260,12 +270,19 @@ Descriptive statistics in this order:
 
 ### PMI
 # In a 2x3 grid (all data available)
-pmi_dict = {'Norway':pmi_nor,
-            'Norway (seas. adj)':pmi_nor_seasadj,
+pmi_dk_decomp = seasonal_decompose(pmi_dk.pmi, period=12).trend.dropna()
+pmi_dk_seasadj = pd.DataFrame({'month':pmi_dk.month[pmi_dk.index.isin(pmi_dk_decomp.index)],
+                              'pmi':pmi_dk_decomp})
+
+
+pmi_dict = {'Norway':pmi_no,
+            'Norway (seas. adj)':pmi_no_seasadj,
             'Denmark':pmi_dk,
-            'Germany':pmi_ger,
+            'Germany':pmi_ge,
             'UK':pmi_uk,
             'US':pmi_us}
+
+
 fig, ax = plt.subplots(ncols=2, nrows=3)
 i=0
 for row in ax:
@@ -293,7 +310,12 @@ plt.legend(loc='best')
 plt.show()
 
 ### Electricity prices
-el_dict = {'Norway':el_nor,
+el_no = el_no[['month', 'usd_per_MWh', 'eur_per_MWh']]
+el_uk = el_uk[['month', 'usd_per_MWh', 'gbp_per_MWh']]
+el_us = el_us[['month', 'usd_per_MWh']]
+el_dk = el_dk[['month', 'usd_per_MWh', 'eur_per_MWh']]
+
+el_dict = {'Norway':el_no,
            'UK':el_uk,
            'US':el_us,
            'Denmark':el_dk}
@@ -319,8 +341,7 @@ ax.plot(wti.month, wti.usd_per_barrel, label='WTI')
 ax.set_title('$/barrel 1987-2020')
 plt.legend(loc='best')
 plt.show()
-from statsmodels.tsa.seasonal import STL
-from statsmodels.tsa.seasonal import seasonal_decompose
+
 
 '''
 Investigating seasonality for all time series, should any of the series be seasonally adjusted?
@@ -328,51 +349,112 @@ Investigating seasonality for all time series, should any of the series be seaso
 2. Electricity
 3. Oil prices
 '''
-STL(pmi_nor.pmi, seasonal=13)
-decomp = seasonal_decompose(pmi_nor.pmi, period=12)
+# Helper function to plot decomposition and the different decomposed elements
+def plot_decomposition(df, column_index, plot_title):
+    try:
+        df = df.dropna()
+        value_column = df.iloc[:, column_index]
+        decomp = seasonal_decompose(value_column, period=12)
 
-fig, axes = plt.subplots(ncols=3, nrows=len(pmi_dict.keys()))
-for i in range(len(pmi_dict.values())):
-    df = list(pmi_dict.values())[i]
-    decomp = seasonal_decompose(df['pmi'], period=12)
-    for row in axes:
-        for col in row:
-            ax.plot(df['month'], decomp.trend)
-plt.show()
+        fig, axes = plt.subplots(nrows=4, ncols=1)
+
+        ax = axes[0]
+        ax.plot(df.month, value_column)
+        ax = axes[1]
+        ax.plot(df.month, decomp.trend)
+        ax.set_title('Trend')
+        ax = axes[2]
+        ax.plot(df.month, decomp.seasonal)
+        ax.set_title('Seasonality')
+        ax = axes[3]
+        ax.plot(df.month, decomp.resid)
+        ax.set_title('Residuals')
+
+        plt.suptitle(plot_title, y=1)
+
+        #plt.tight_layout()
+        plt.show()
+    except:
+        raise Exception('Could not plot {}'.format(plot_title))
+
+# PMI
+plot_decomposition(pmi_dk, 1, 'Denmark PMI')
+plot_decomposition(pmi_no, 1, 'Norway PMI')
+plot_decomposition(pmi_us, 1, 'US PMI')
+plot_decomposition(pmi_uk, 1, 'UK PMI')
+plot_decomposition(pmi_ge, 1, 'Germany PMI')
+
+# Electricity
+plot_decomposition(el_dk, 2, 'Electricity Denmark')
+plot_decomposition(el_no, 2, 'Electricity Norway')
+plot_decomposition(el_uk, 2, 'Electricity UK')
+plot_decomposition(el_ge, 2, 'Electricity Germany')
+plot_decomposition(el_us, 1, 'Electricity US')
+
+# Oil
+plot_decomposition(brent, 1, 'Brent Oil')
+plot_decomposition(wti, 1, 'WTI Oil')
+
 
 '''
 Investigating autocorrelation for all time series, should any of the series be seasonally adjusted?
 1. PMI
 2. Electricity
 3. Oil prices
-'''
+
 # Plotting ACF and PACF
-fig, axes = plt.subplots(nrows=5, ncols=2)
+'''
+def plot_autocorrelation(dict, column_index):
+    print('ADFuller test to check for stationarity (H0 is that there is non-stationarity):')
+    for i in range(len(list(dict.values()))):
+        df = list(dict.values())[i].dropna()
+        title = list(dict.keys())[i]
+
+        plot_pacf(df.iloc[:,column_index], ax=axes[i,0], title=title)
+        plot_acf(df.iloc[:,column_index], ax=axes[i,1], title=title)
+
+        # Print ADFuller test
+        p_val = adfuller(df.iloc[:, column_index])[1]
+        print('P-value of {c}: {p}'.format(c=title, p=p_val))
+
+    fig.align_ylabels()
+    plt.show()
+
+# PMI
+fig, axes = plt.subplots(nrows=6, ncols=2, figsize=(16,32))
 plt.subplots_adjust(hspace=0.4)
 title_size = 15
 title_type = 'bold'
 ylabel_size = 12
 
-plot_pacf(pmi_dk.pmi , ax=axes[0,0], title='DK')
-plot_pacf(pmi_ger.pmi, ax=axes[1,0], title='Germany')
-plot_pacf(pmi_nor.pmi, ax=axes[2,0], title='Norway')
-plot_pacf(pmi_uk.pmi , ax=axes[3,0], title='UK')
-plot_pacf(pmi_us.pmi, ax=axes[4,0], title='US')
+plot_autocorrelation(pmi_dict, 1)
 
-plot_acf(pmi_dk.pmi,  ax=axes[0,1], title='DK')
-plot_acf(pmi_ger.pmi, ax=axes[1,1], title='Germany')
-plot_acf(pmi_nor.pmi, ax=axes[2,1], title='Norway')
-plot_acf(pmi_uk.pmi,  ax=axes[3,1], title='UK')
-plot_acf(pmi_us.pmi,  ax=axes[4,1], title='US')
+# Electricity
+fig, axes = plt.subplots(nrows=4, ncols=2, figsize=(16,32))
+plt.subplots_adjust(hspace=0.4)
+title_size = 15
+title_type = 'bold'
+ylabel_size = 12
+plot_autocorrelation(el_dict, 1)
 
-plt.suptitle('          Partial            PMI      Autocorrelation', y = 0.98, size=19)
+# Oil
+oil_dict = {'Brent':brent,
+            'WTI': wti}
 
-fig.align_ylabels()
-plt.show()
+fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(16,32))
+plt.subplots_adjust(hspace=0.4)
+title_size = 15
+title_type = 'bold'
+ylabel_size = 12
+plot_autocorrelation(oil_dict, 1)
 
-print('ADFuller test to check for stationarity (H0 is that there is non-stationarity):')
-for i in range(len((pmi_dict.values()))):
-    df = list(pmi_dict.values())[i]
-    name = list(pmi_dict.keys())[i]
-    p_val = adfuller(df['pmi'])[1]
-    print('P-value of {c}: {p}'.format(c=name, p=p_val))
+
+'''
+Developing dynamic models (SARIMA with explanatory variables) 
+'''
+
+
+model_auto = auto_arima(cons_dk, m = 7,
+                        max_order = None, max_p = 5, max_q = 5, max_d = 1, max_P = 3, max_Q = 5, max_D = 2,
+                        maxiter = 50, alpha = 0.05, n_jobs = -1, trend = 'ct', information_criterion = 'aic',
+                        out_of_sample = int(len(cons_dk*0.2)))
