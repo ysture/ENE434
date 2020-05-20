@@ -13,6 +13,10 @@ from statsmodels.tsa.seasonal import STL
 from statsmodels.tsa.seasonal import seasonal_decompose
 from statsmodels.tsa.statespace.sarimax import SARIMAX
 from pmdarima.arima import auto_arima
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import roc_auc_score, confusion_matrix, plot_confusion_matrix
+
+
 
 #TODO Finn bedre kilde til strømpriser fra Tyskland (sjekk link fra Hendrik)
 
@@ -24,6 +28,30 @@ cur['month'] = pd.to_datetime(cur['month'])
 currency_dict = {'eur':'eur_per_usd', 'gbp':'gbp_per_usd'}
 
 # Helper functions
+# To import data from NordPool
+def import_nordpool():
+    df = pd.DataFrame()
+    for f in nordpool_files:
+        dfTemp = pd.read_csv('input/{}'.format(f), engine='python', header=2)
+        df = pd.concat([df, dfTemp], axis=0)
+    df = df.reset_index(drop=True).rename(columns={'Unnamed: 0':'month'})
+    df = df.stack().str.replace(',','.').unstack()
+    return df
+
+# Import US electricity data
+def import_us():
+    df = pd.DataFrame()
+    for f in us_filenames:
+        dfTemp = pd.read_csv('input/ice_electric-historical/{}'.format(f), engine='python')
+        dfTemp.columns = dfTemp.columns.str.lstrip()
+        dfTemp.columns = dfTemp.columns.str.rstrip()
+        dfTemp = dfTemp[['Price Hub', 'Trade Date', 'Wtd Avg Price $/MWh', 'Daily Volume MWh']]
+        dfTemp['Daily Volume MWh'] = dfTemp['Daily Volume MWh'].str.replace(" ", "")
+        df = pd.concat([df, dfTemp], axis=0)
+    df = df.astype({'Wtd Avg Price $/MWh': 'float', 'Daily Volume MWh': 'int'})
+    df = df.reset_index(drop=True)
+    return df
+
 # To remove projections from certain PMI tables
 def remove_projections(df):
     df['monthyear'] = df.month.dt.strftime('%m-%Y')
@@ -73,7 +101,53 @@ def shift_month_back(df):
         shifted_back_list.append(new_date)
     return shifted_back_list
 
-# Creating function to plot forecasts
+# Function to plot decomposition and the different decomposed elements
+def plot_decomposition(df, column_index, plot_title):
+    try:
+        df = df.dropna()
+        value_column = df.iloc[:, column_index]
+        decomp = seasonal_decompose(value_column, period=12)
+        #TODO prøv med period=52 siden man har ukentlig data
+
+        fig, axes = plt.subplots(nrows=4, ncols=1)
+
+        ax = axes[0]
+        ax.plot(df.month, value_column)
+        ax = axes[1]
+        ax.plot(df.month, decomp.trend)
+        ax.set_title('Trend')
+        ax = axes[2]
+        ax.plot(df.month, decomp.seasonal)
+        ax.set_title('Seasonality')
+        ax = axes[3]
+        ax.plot(df.month, decomp.resid)
+        ax.set_title('Residuals')
+
+        plt.suptitle(plot_title, y=1)
+
+        #plt.tight_layout()
+        plt.show()
+    except:
+        raise Exception('Could not plot {}'.format(plot_title))
+
+# Function to plot autocorrelation
+def plot_autocorrelation(dict, column_index):
+    print('ADFuller test to check for stationarity (H0 is that there is non-stationarity):')
+    for i in range(len(list(dict.values()))):
+        df = list(dict.values())[i].dropna()
+        title = list(dict.keys())[i]
+
+        plot_pacf(df.iloc[:,column_index], ax=axes[i,0], title=title)
+        plot_acf(df.iloc[:,column_index], ax=axes[i,1], title=title)
+
+        # Print ADFuller test
+        p_val = adfuller(df.iloc[:, column_index])[1]
+        print('P-value of {c}: {p}'.format(c=title, p=p_val))
+
+    fig.align_ylabels()
+    plt.show()
+
+# Function to plot forecasts
 def forecast_plot(dataframe, arima_mod, forecasts=12, outer_interval=0.95, inner_interval=0.8, y_label="", x_label="", exog_test=None):
 
     res = arima_mod.fit(maxiter=100, disp=0)
@@ -197,14 +271,6 @@ el_uk['month'] = pd.to_datetime(el_uk['month'], dayfirst=True)
 
 ## NordPool (Norway, Netherlands and Germany)
 nordpool_files = [f for f in os.listdir('input/') if f.startswith('elspot-prices_')]
-def import_nordpool():
-    df = pd.DataFrame()
-    for f in nordpool_files:
-        dfTemp = pd.read_csv('input/{}'.format(f), engine='python', header=2)
-        df = pd.concat([df, dfTemp], axis=0)
-    df = df.reset_index(drop=True).rename(columns={'Unnamed: 0':'month'})
-    df = df.stack().str.replace(',','.').unstack()
-    return df
 np_df = import_nordpool()
 np_df.columns
 np_df['month'] = np_df['month'].apply(lambda x: datetime.strptime(x, '%y - %b'))
@@ -230,22 +296,6 @@ el_ge.dropna(inplace=True)
 
 # US
 us_filenames = os.listdir('input/ice_electric-historical')
-
-
-def import_us():
-    df = pd.DataFrame()
-    for f in us_filenames:
-        dfTemp = pd.read_csv('input/ice_electric-historical/{}'.format(f), engine='python')
-        dfTemp.columns = dfTemp.columns.str.lstrip()
-        dfTemp.columns = dfTemp.columns.str.rstrip()
-        dfTemp = dfTemp[['Price Hub', 'Trade Date', 'Wtd Avg Price $/MWh', 'Daily Volume MWh']]
-        dfTemp['Daily Volume MWh'] = dfTemp['Daily Volume MWh'].str.replace(" ", "")
-        df = pd.concat([df, dfTemp], axis=0)
-    df = df.astype({'Wtd Avg Price $/MWh': 'float', 'Daily Volume MWh': 'int'})
-    df = df.reset_index(drop=True)
-    return df
-
-
 us_df = import_us()
 
 us_df['Trade Date'] = pd.to_datetime(us_df['Trade Date'])
@@ -397,34 +447,6 @@ Investigating seasonality for all time series, should any of the series be seaso
 2. Electricity
 3. Oil prices
 '''
-# Helper function to plot decomposition and the different decomposed elements
-def plot_decomposition(df, column_index, plot_title):
-    try:
-        df = df.dropna()
-        value_column = df.iloc[:, column_index]
-        decomp = seasonal_decompose(value_column, period=12)
-        #TODO prøv med period=52 siden man har ukentlig data
-
-        fig, axes = plt.subplots(nrows=4, ncols=1)
-
-        ax = axes[0]
-        ax.plot(df.month, value_column)
-        ax = axes[1]
-        ax.plot(df.month, decomp.trend)
-        ax.set_title('Trend')
-        ax = axes[2]
-        ax.plot(df.month, decomp.seasonal)
-        ax.set_title('Seasonality')
-        ax = axes[3]
-        ax.plot(df.month, decomp.resid)
-        ax.set_title('Residuals')
-
-        plt.suptitle(plot_title, y=1)
-
-        #plt.tight_layout()
-        plt.show()
-    except:
-        raise Exception('Could not plot {}'.format(plot_title))
 
 # PMI
 plot_decomposition(pmi_dk, 1, 'Denmark PMI')
@@ -452,22 +474,6 @@ Investigating autocorrelation for all time series, should any of the series be s
 
 # Plotting ACF and PACF
 '''
-def plot_autocorrelation(dict, column_index):
-    print('ADFuller test to check for stationarity (H0 is that there is non-stationarity):')
-    for i in range(len(list(dict.values()))):
-        df = list(dict.values())[i].dropna()
-        title = list(dict.keys())[i]
-
-        plot_pacf(df.iloc[:,column_index], ax=axes[i,0], title=title)
-        plot_acf(df.iloc[:,column_index], ax=axes[i,1], title=title)
-
-        # Print ADFuller test
-        p_val = adfuller(df.iloc[:, column_index])[1]
-        print('P-value of {c}: {p}'.format(c=title, p=p_val))
-
-    fig.align_ylabels()
-    plt.show()
-
 # PMI
 fig, axes = plt.subplots(nrows=6, ncols=2, figsize=(16,32))
 plt.subplots_adjust(hspace=0.4)
@@ -626,6 +632,11 @@ model_exog_prev.summary()
 arima_exog_prev = SARIMAX(df_no.pmi, order=(1,0,1), seasonal_order=(3,0,3,12), exog=exog.astype('float'))
 results_exog_prev = arima_exog_prev.fit(maxiter=300)
 '''
+# Adding direction column in all data frames (1 if PMI goes up, 0 if down)
+df_no['dir'] = [1 if x > 0 else 0 for x in df_no.pmi - df_no.pmi.shift(1)]
+df_dk['dir'] = [1 if x > 0 else 0 for x in df_dk.pmi - df_dk.pmi.shift(1)]
+df_uk['dir'] = [1 if x > 0 else 0 for x in df_uk.pmi - df_uk.pmi.shift(1)]
+df_us['dir'] = [1 if x > 0 else 0 for x in df_us.pmi - df_us.pmi.shift(1)]
 
 
 # Need to find ARIMA terms for all countries. Using exog with only previous periods (only lags)
@@ -634,8 +645,8 @@ n_test_obs = 12
 df_no.index = pd.DatetimeIndex(df_no.index).to_period('M')
 df_no_train = df_no.iloc[:-n_test_obs,:]
 df_no_test = df_no.iloc[-n_test_obs:,:]
-exog_no_train = df_no_train.drop(['eur_per_MWh', 'pmi', 'usd_per_MWh', 'usd_per_barrel_x', 'usd_per_barrel_y'], axis=1)
-exog_no_test = df_no_test.drop(['eur_per_MWh', 'pmi', 'usd_per_MWh', 'usd_per_barrel_x', 'usd_per_barrel_y'], axis=1)
+exog_no_train = df_no_train.drop(['dir', 'eur_per_MWh', 'pmi', 'usd_per_MWh', 'usd_per_barrel_x', 'usd_per_barrel_y'], axis=1)
+exog_no_test = df_no_test.drop(['dir', 'eur_per_MWh', 'pmi', 'usd_per_MWh', 'usd_per_barrel_x', 'usd_per_barrel_y'], axis=1)
 #model_no = auto_arima(df_no_train.pmi, m = 12, exogenous=exog_no_train.to_numpy(),
 #                             max_order = None, max_p = 5, max_q = 5, max_d = 4, max_P = 3, max_Q = 5, max_D = 4,
 #                             maxiter = 50, alpha = 0.05, n_jobs = -1, trend = 'ct', information_criterion = 'aic')
@@ -648,8 +659,8 @@ f = res_no.get_forecast(n_test_obs, exog=exog_no_test.iloc[-n_test_obs:,:].astyp
 df_dk.index = pd.DatetimeIndex(df_dk.index).to_period('M')
 df_dk_train = df_dk.iloc[:-n_test_obs,:]
 df_dk_test = df_dk.iloc[-n_test_obs:,:]
-exog_dk_train = df_dk_train.drop(['eur_per_MWh', 'pmi', 'usd_per_MWh', 'usd_per_barrel_x', 'usd_per_barrel_y'], axis=1)
-exog_dk_test = df_dk_test.drop(['eur_per_MWh', 'pmi', 'usd_per_MWh', 'usd_per_barrel_x', 'usd_per_barrel_y'], axis=1)
+exog_dk_train = df_dk_train.drop(['dir', 'eur_per_MWh', 'pmi', 'usd_per_MWh', 'usd_per_barrel_x', 'usd_per_barrel_y'], axis=1)
+exog_dk_test = df_dk_test.drop(['dir', 'eur_per_MWh', 'pmi', 'usd_per_MWh', 'usd_per_barrel_x', 'usd_per_barrel_y'], axis=1)
 #model_dk = auto_arima(df_dk_train.pmi, m = 12, exogenous=exog_dk_train.to_numpy(),
 #                             max_order = None, max_p = 5, max_q = 5, max_d = 4, max_P = 3, max_Q = 5, max_D = 4,
 #                             maxiter = 50, alpha = 0.05, n_jobs = -1, trend = 'ct', information_criterion = 'aic')
@@ -662,8 +673,8 @@ f = res_dk.get_forecast(n_test_obs, exog=exog_dk_test.iloc[-n_test_obs:,:].astyp
 df_uk.index = pd.DatetimeIndex(df_uk.index).to_period('M')
 df_uk_train = df_uk.iloc[:-n_test_obs,:]
 df_uk_test = df_uk.iloc[-n_test_obs:,:]
-exog_uk_train = df_uk_train.drop(['monthyear', 'gbp_per_MWh', 'pmi', 'usd_per_MWh', 'usd_per_barrel_x', 'usd_per_barrel_y'], axis=1)
-exog_uk_test = df_uk_test.drop(['monthyear', 'gbp_per_MWh', 'pmi', 'usd_per_MWh', 'usd_per_barrel_x', 'usd_per_barrel_y'], axis=1)
+exog_uk_train = df_uk_train.drop(['dir', 'monthyear', 'gbp_per_MWh', 'pmi', 'usd_per_MWh', 'usd_per_barrel_x', 'usd_per_barrel_y'], axis=1)
+exog_uk_test = df_uk_test.drop(['dir', 'monthyear', 'gbp_per_MWh', 'pmi', 'usd_per_MWh', 'usd_per_barrel_x', 'usd_per_barrel_y'], axis=1)
 #model_uk = auto_arima(df_uk_train.pmi, m = 12, exogenous=exog_uk_train.to_numpy(),
 #                             max_order = None, max_p = 5, max_q = 5, max_d = 4, max_P = 3, max_Q = 5, max_D = 4,
 #                             maxiter = 50, alpha = 0.05, n_jobs = -1, trend = 'ct', information_criterion = 'aic')
@@ -678,8 +689,8 @@ f.index = df_uk_test.index
 df_us.index = pd.DatetimeIndex(df_us.index).to_period('M')
 df_us_train = df_us.iloc[:-n_test_obs,:]
 df_us_test = df_us.iloc[-n_test_obs:,:]
-exog_us_train = df_us_train.drop(['pmi', 'usd_per_MWh', 'usd_per_barrel_x', 'usd_per_barrel_y'], axis=1)
-exog_us_test = df_us_test.drop(['pmi', 'usd_per_MWh', 'usd_per_barrel_x', 'usd_per_barrel_y'], axis=1)
+exog_us_train = df_us_train.drop(['dir', 'pmi', 'usd_per_MWh', 'usd_per_barrel_x', 'usd_per_barrel_y'], axis=1)
+exog_us_test = df_us_test.drop(['dir', 'pmi', 'usd_per_MWh', 'usd_per_barrel_x', 'usd_per_barrel_y'], axis=1)
 #model_us = auto_arima(df_us_train.pmi, m = 12, exogenous=exog_us_train.to_numpy(),
 #                             max_order = None, max_p = 5, max_q = 5, max_d = 4, max_P = 3, max_Q = 5, max_D = 4,
 #                             maxiter = 50, alpha = 0.05, n_jobs = -1, trend = 'ct', information_criterion = 'aic')
@@ -703,11 +714,100 @@ rmse_uk =(((f['mean']-df_uk_test.pmi)**2).mean())**0.5
 rmse_us =(((f['mean']-df_us_test.pmi)**2).mean())**0.5
 
 
-
-# TODO Lag et test set for å predikere 2019.
-# TODO Lag dynamic models for de andre landene
 # TODO Etter at alt annet (inkludert andre ML-modeller) er ferdig: Predikér resten av 2020 (om det er plass)
 
 '''
 Developing Random Forest model to predict if PMI will go up or down based on lagged oil price and electricity variables
 '''
+
+### Norway
+model = RandomForestClassifier(n_estimators=100, bootstrap=True, max_features=None, random_state=86)
+model.fit(X=exog_no_train, y=df_no_train.dir)
+
+preds = model.predict(exog_no_test)
+model.predict_proba(exog_no_test) # probabilities calculated by the Random Forest model
+conf_mat = confusion_matrix(y_true=df_no_test.dir, y_pred=preds, labels=[0,1])
+
+# Confusion matrix for test set
+plot_confusion_matrix(model, exog_no_test, df_no_test.dir)
+plt.show()
+
+# Confusion matrix for training set
+plot_confusion_matrix(model, exog_no_train, df_no_train.dir)
+model.predict_proba(exog_no_train) # probabilities calculated by the Random Forest model
+plt.show()
+
+# Extract feature importances
+fi = pd.DataFrame({'feature': list(exog_no_test.columns),
+                   'importance': model.feature_importances_}). \
+    sort_values('importance', ascending = False)
+fi.head()
+
+### Denmark
+model = RandomForestClassifier(n_estimators=100, bootstrap=True, max_features=None, random_state=86)
+model.fit(X=exog_dk_train, y=df_dk_train.dir)
+
+preds = model.predict(exog_dk_test)
+model.predict_proba(exog_dk_test) # probabilities calculated by the Random Forest model
+conf_mat = confusion_matrix(y_true=df_dk_test.dir, y_pred=preds, labels=[0,1])
+
+# Confusion matrix for test set
+plot_confusion_matrix(model, exog_dk_test, df_dk_test.dir)
+plt.show()
+
+# Confusion matrix for training set
+plot_confusion_matrix(model, exog_dk_train, df_dk_train.dir)
+model.predict_proba(exog_dk_train) # probabilities calculated by the Random Forest model
+plt.show()
+
+# Extract feature importances
+fi = pd.DataFrame({'feature': list(exog_dk_test.columns),
+                   'importance': model.feature_importances_}). \
+    sort_values('importance', ascending = False)
+fi.head()
+
+### UK
+model = RandomForestClassifier(n_estimators=100, bootstrap=True, max_features=None, random_state=86)
+model.fit(X=exog_uk_train, y=df_uk_train.dir)
+
+preds = model.predict(exog_uk_test)
+model.predict_proba(exog_uk_test) # probabilities calculated by the Random Forest model
+conf_mat = confusion_matrix(y_true=df_uk_test.dir, y_pred=preds, labels=[0,1])
+
+# Confusion matrix for test set
+plot_confusion_matrix(model, exog_uk_test, df_uk_test.dir)
+plt.show()
+
+# Confusion matrix for training set
+plot_confusion_matrix(model, exog_uk_train, df_uk_train.dir)
+model.predict_proba(exog_uk_train) # probabilities calculated by the Random Forest model
+plt.show()
+
+# Extract feature importances
+fi = pd.DataFrame({'feature': list(exog_uk_test.columns),
+                   'importance': model.feature_importances_}). \
+    sort_values('importance', ascending = False)
+fi.head()
+
+### US
+model = RandomForestClassifier(n_estimators=100, bootstrap=True, max_features=None, random_state=86)
+model.fit(X=exog_us_train, y=df_us_train.dir)
+
+preds = model.predict(exog_us_test)
+model.predict_proba(exog_us_test) # probabilities calculated by the Random Forest model
+conf_mat = confusion_matrix(y_true=df_us_test.dir, y_pred=preds, labels=[0,1])
+
+# Confusion matrix for test set
+plot_confusion_matrix(model, exog_us_test, df_us_test.dir)
+plt.show()
+
+# Confusion matrix for training set
+plot_confusion_matrix(model, exog_us_train, df_us_train.dir)
+model.predict_proba(exog_us_train) # probabilities calculated by the Random Forest model
+plt.show()
+
+# Extract feature importances
+fi = pd.DataFrame({'feature': list(exog_us_test.columns),
+                   'importance': model.feature_importances_}). \
+    sort_values('importance', ascending = False)
+fi.head()
