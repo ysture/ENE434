@@ -599,6 +599,8 @@ df_no = df_no.dropna()
 ndiffs(df_no.pmi, test='adf')
 nsdiffs(df_no.pmi, test='ch', m=12)
 
+'''
+Preparing dynamic model (trying out with exogenous variables from both current and previous periods)
 # Dynamic model with exogenous variables (including current period)
 exog = df_no.drop(['eur_per_MWh', 'pmi'], axis=1)
 model_exog = auto_arima(df_no.pmi, m = 12, exogenous=exog.to_numpy(),
@@ -623,6 +625,7 @@ model_exog_prev = auto_arima(df_no.pmi, m = 12, exogenous=exog_prev.to_numpy(),
 model_exog_prev.summary()
 arima_exog_prev = SARIMAX(df_no.pmi, order=(1,0,1), seasonal_order=(3,0,3,12), exog=exog.astype('float'))
 results_exog_prev = arima_exog_prev.fit(maxiter=300)
+'''
 
 
 # Need to find ARIMA terms for all countries. Using exog with only previous periods (only lags)
@@ -638,6 +641,8 @@ exog_no_test = df_no_test.drop(['eur_per_MWh', 'pmi', 'usd_per_MWh', 'usd_per_ba
 #                             maxiter = 50, alpha = 0.05, n_jobs = -1, trend = 'ct', information_criterion = 'aic')
 #model_no.summary()
 arima_no = SARIMAX(df_no_train.pmi, order=(2,0,1), seasonal_order=(2,0,2,12), exog=exog_no_train.astype('float'))
+res_no = arima_no.fit(maxiter=100, disp=0)
+f = res_no.get_forecast(n_test_obs, exog=exog_no_test.iloc[-n_test_obs:,:].astype('float')).summary_frame()
 
 # Denmark
 df_dk.index = pd.DatetimeIndex(df_dk.index).to_period('M')
@@ -650,6 +655,8 @@ exog_dk_test = df_dk_test.drop(['eur_per_MWh', 'pmi', 'usd_per_MWh', 'usd_per_ba
 #                             maxiter = 50, alpha = 0.05, n_jobs = -1, trend = 'ct', information_criterion = 'aic')
 #model_dk.summary()
 arima_dk = SARIMAX(df_dk_train.pmi, order=(1,0,1), seasonal_order=(0,0,1,12), exog=exog_dk_train.astype('float'))
+res_dk = arima_dk.fit(maxiter=100, disp=0)
+f = res_dk.get_forecast(n_test_obs, exog=exog_dk_test.iloc[-n_test_obs:,:].astype('float')).summary_frame()
 
 # UK
 df_uk.index = pd.DatetimeIndex(df_uk.index).to_period('M')
@@ -662,6 +669,10 @@ exog_uk_test = df_uk_test.drop(['monthyear', 'gbp_per_MWh', 'pmi', 'usd_per_MWh'
 #                             maxiter = 50, alpha = 0.05, n_jobs = -1, trend = 'ct', information_criterion = 'aic')
 #model_uk.summary()
 arima_uk = SARIMAX(df_uk_train.pmi, order=(1,0,2), exog=exog_uk_train.astype('float'))
+res_uk = arima_uk.fit(maxiter=100, disp=0)
+f = res_uk.get_forecast(n_test_obs, exog=exog_uk_test.iloc[-n_test_obs:,:].astype('float')).summary_frame()
+f.index = df_uk_test.index
+
 
 # US
 df_us.index = pd.DatetimeIndex(df_us.index).to_period('M')
@@ -674,12 +685,23 @@ exog_us_test = df_us_test.drop(['pmi', 'usd_per_MWh', 'usd_per_barrel_x', 'usd_p
 #                             maxiter = 50, alpha = 0.05, n_jobs = -1, trend = 'ct', information_criterion = 'aic')
 #model_us.summary()
 arima_us = SARIMAX(df_us_train.pmi, order=(1,0,0), seasonal_order=(0,0,1,12), exog=exog_us_train.astype('float'))
+res_us = arima_us.fit(maxiter=100, disp=0)
+f = res_us.get_forecast(n_test_obs, exog=exog_us_test.iloc[-n_test_obs:,:].astype('float')).summary_frame()
+f.index = df_us_test.index
+
 
 # Plotting forecasts
 forecast_plot(df_no.pmi, arima_no, forecasts=n_test_obs, y_label="PMI", exog_test=exog_no_test)
 forecast_plot(df_dk.pmi, arima_dk, forecasts=n_test_obs, y_label="PMI", exog_test=exog_dk_test)
 forecast_plot(df_uk.pmi, arima_uk, forecasts=n_test_obs, y_label="PMI", exog_test=exog_uk_test)
 forecast_plot(df_us.pmi, arima_us, forecasts=n_test_obs, y_label="PMI", exog_test=exog_us_test)
+
+# Calculating RMSE
+rmse_no =(((f['mean']-df_no_test.pmi)**2).mean())**0.5
+rmse_dk =(((f['mean']-df_dk_test.pmi)**2).mean())**0.5
+rmse_uk =(((f['mean']-df_uk_test.pmi)**2).mean())**0.5
+rmse_us =(((f['mean']-df_us_test.pmi)**2).mean())**0.5
+
 
 
 # TODO Lag et test set for å predikere 2019.
