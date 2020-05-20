@@ -550,11 +550,37 @@ df_no = pd.merge(df_no, brent, how='left', left_index=True, right_index=True)
 df_no = pd.merge(df_no, wti, how='left', left_index=True, right_index=True)
 df_no = df_no.dropna()
 
+# Creating one dataframe for each country to include exogenous variables and PMI in the same df
+df_dk = pd.merge(pmi_dk, el_dk, how='left', left_index=True, right_index=True)
+df_dk = pd.merge(df_dk, brent, how='left', left_index=True, right_index=True)
+df_dk = pd.merge(df_dk, wti, how='left', left_index=True, right_index=True)
+df_dk = df_dk.dropna()
+
+# Creating one dataframe for each country to include exogenous variables and PMI in the same df
+df_uk = pd.merge(pmi_uk, el_uk, how='left', left_index=True, right_index=True)
+df_uk = pd.merge(df_uk, brent, how='left', left_index=True, right_index=True)
+df_uk = pd.merge(df_uk, wti, how='left', left_index=True, right_index=True)
+df_uk = df_uk.dropna()
+
+# Creating one dataframe for each country to include exogenous variables and PMI in the same df
+df_us = pd.merge(pmi_us, el_us, how='left', left_index=True, right_index=True)
+df_us = pd.merge(df_us, brent, how='left', left_index=True, right_index=True)
+df_us = pd.merge(df_us, wti, how='left', left_index=True, right_index=True)
+df_us = df_us.dropna()
+
+# Creating one dataframe for each country to include exogenous variables and PMI in the same df
+df_ge = pd.merge(pmi_ge, el_ge, how='left', left_index=True, right_index=True)
+df_ge = pd.merge(df_ge, brent, how='left', left_index=True, right_index=True)
+df_ge = pd.merge(df_ge, wti, how='left', left_index=True, right_index=True)
+df_ge = df_ge.dropna()
+
+
+
 '''
 Developing dynamic models (SARIMA with explanatory variables) 
 '''
 # Norway
-model_auto = auto_arima(pmi_no.pmi, m = 52,
+model_auto = auto_arima(pmi_no.pmi, m = 12,
                         max_order = None, max_p = 5, max_q = 5, max_d = 1, max_P = 3, max_Q = 5, max_D = 2,
                         maxiter = 50, alpha = 0.05, n_jobs = -1, trend = 'ct', information_criterion = 'aic',
                         out_of_sample = int(pmi_no.shape[0]*0.2))
@@ -570,22 +596,77 @@ from pmdarima.arima.utils import nsdiffs
 # Formally prove that only one differencing is needed
 df_no = df_no.dropna()
 ndiffs(df_no.pmi, test='adf')
-nsdiffs(df_no.pmi, test='ch', m=52)
-nsdiffs(df_no.pmi, test='ch', m=4)
+nsdiffs(df_no.pmi, test='ch', m=12)
 
-fig, ax = plt.subplots()
-ax.plot(df_no.pmi_diff)
-plt.show()
-
+# Dynamic model with exogenous variables (including current period)
 exog = df_no.drop(['eur_per_MWh', 'pmi'], axis=1)
-model_auto = auto_arima(df_no.pmi, m = 52, exogenous=exog.to_numpy(),
+model_exog = auto_arima(df_no.pmi, m = 12, exogenous=exog.to_numpy(),
                         max_order = None, max_p = 5, max_q = 5, max_d = 4, max_P = 3, max_Q = 5, max_D = 4,
                         maxiter = 50, alpha = 0.05, n_jobs = -1, trend = 'ct', information_criterion = 'aic',
                         out_of_sample = int(df_no.shape[0]*0.2))
-model_auto.summary()
-arima_auto = SARIMAX(df_no.pmi, order=(2,0,0), seasonal_order=(1,0,1,52), exog=exog.astype('float'))
-results_auto = arima_auto.fit(maxiter=300)
-forecast_plot(df_no.pmi, arima_auto, forecasts=30, y_label="PMI", exogenous=exog)
+model_exog.summary()
+arima_exog = SARIMAX(df_no.pmi, order=(1,0,2), seasonal_order=(3,0,3,12), exog=exog.astype('float'))
+results_exog = arima_exog.fit(maxiter=300)
+forecasts=12
+f = results_exog.get_forecast(forecasts, exog=exog.iloc[-forecasts:,:].astype('float')).summary_frame()
+f_ix = f.index
+pred_mean = f['mean'] # prediction mean
+forecast_plot(df_no.pmi, arima_auto, forecasts=30, y_label="PMI", exogenous=exog) # plotting forecast
+
+# Dynamic model with only previous periods for exogenous variables
+exog_prev = df_no.drop(['eur_per_MWh', 'pmi', 'usd_per_MWh', 'usd_per_barrel_x', 'usd_per_barrel_y'], axis=1)
+model_exog_prev = auto_arima(df_no.pmi, m = 12, exogenous=exog_prev.to_numpy(),
+                             max_order = None, max_p = 5, max_q = 5, max_d = 4, max_P = 3, max_Q = 5, max_D = 4,
+                             maxiter = 50, alpha = 0.05, n_jobs = -1, trend = 'ct', information_criterion = 'aic',
+                             out_of_sample = int(df_no.shape[0]*0.2))
+model_exog_prev.summary()
+arima_exog_prev = SARIMAX(df_no.pmi, order=(1,0,1), seasonal_order=(3,0,3,12), exog=exog.astype('float'))
+results_exog_prev = arima_exog_prev.fit(maxiter=300)
+
+
+# Need to find ARIMA terms for all countries. Using exog with only previous periods (only lags)
+# Norway
+exog_no = df_no.drop(['eur_per_MWh', 'pmi', 'usd_per_MWh', 'usd_per_barrel_x', 'usd_per_barrel_y'], axis=1)
+model_no = auto_arima(df_no.pmi, m = 12, exogenous=exog_prev.to_numpy(),
+                             max_order = None, max_p = 5, max_q = 5, max_d = 4, max_P = 3, max_Q = 5, max_D = 4,
+                             maxiter = 50, alpha = 0.05, n_jobs = -1, trend = 'ct', information_criterion = 'aic',
+                             out_of_sample = int(df_no.shape[0]*0.2))
+model_no.summary()
+arima_no = SARIMAX(df_no.pmi, order=(1,0,1), seasonal_order=(3,0,3,12), exog=exog.astype('float'))
+
+# Denmark
+exog_dk = df_dk.drop(['eur_per_MWh', 'pmi', 'usd_per_MWh', 'usd_per_barrel_x', 'usd_per_barrel_y'], axis=1)
+model_dk = auto_arima(df_dk.pmi, m = 12, exogenous=exog.to_numpy(),
+                      max_order = None, max_p = 5, max_q = 5, max_d = 4, max_P = 3, max_Q = 5, max_D = 4,
+                      maxiter = 50, alpha = 0.05, n_jobs = -1, trend = 'ct', information_criterion = 'aic',
+                      out_of_sample = int(df_dk.shape[0]*0.2))
+model_dk.summary()
+arima_dk = SARIMAX(df_dk.pmi, order=(1,0,2), seasonal_order=(0,0,1,12), exog=exog.astype('float'))
+
+# UK
+exog_uk = df_uk.drop(['monthyear', 'gbp_per_MWh', 'pmi', 'usd_per_MWh', 'usd_per_barrel_x', 'usd_per_barrel_y'], axis=1)
+model_uk = auto_arima(df_uk.pmi, m = 12, exogenous=exog.to_numpy(),
+                      max_order = None, max_p = 5, max_q = 5, max_d = 4, max_P = 3, max_Q = 5, max_D = 4,
+                      maxiter = 50, alpha = 0.05, n_jobs = -1, trend = 'ct', information_criterion = 'aic',
+                      out_of_sample = int(df_uk.shape[0]*0.2))
+model_uk.summary()
+arima_uk = SARIMAX(df_uk.pmi, order=(1,0,2), exog=exog.astype('float'))
+
+# US
+exog_us = df_us.drop(['pmi', 'usd_per_MWh', 'usd_per_barrel_x', 'usd_per_barrel_y'], axis=1)
+model_us = auto_arima(df_us.pmi, m = 12, exogenous=exog.to_numpy(),
+                      max_order = None, max_p = 5, max_q = 5, max_d = 4, max_P = 3, max_Q = 5, max_D = 4,
+                      maxiter = 50, alpha = 0.05, n_jobs = -1, trend = 'ct', information_criterion = 'aic',
+                      out_of_sample = int(df_us.shape[0]*0.2))
+model_us.summary()
+arima_us = SARIMAX(df_us.pmi, order=(1,0,0), seasonal_order=(1,0,1,12), exog=exog.astype('float'))
+
+# Plotting forecasts
+forecast_plot(df_no.pmi, arima_no, forecasts=24, y_label="PMI", exogenous=exog)
+forecast_plot(df_dk.pmi, arima_dk, forecasts=24, y_label="PMI", exogenous=exog)
+forecast_plot(df_uk.pmi, arima_uk, forecasts=24, y_label="PMI", exogenous=exog)
+forecast_plot(df_us.pmi, arima_us, forecasts=24, y_label="PMI", exogenous=exog)
+
 
 # TODO Lag et test set for å predikere 2019.
 # TODO Lag dynamic models for de andre landene
