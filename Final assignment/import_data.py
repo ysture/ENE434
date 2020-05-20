@@ -74,15 +74,12 @@ def shift_month_back(df):
     return shifted_back_list
 
 # Creating function to plot forecasts
-def forecast_plot(dataframe, arima_mod, forecasts=12, n_test_obs, outer_interval=0.95, inner_interval=0.8, y_label="", x_label="", exog_test=None):
-    train = dataframe.iloc[:-n_test_obs,:]
-    test = dataframe.iloc[-n_test_obs:,:]
-
+def forecast_plot(dataframe, arima_mod, forecasts=12, outer_interval=0.95, inner_interval=0.8, y_label="", x_label="", exog_test=None):
 
     res = arima_mod.fit(maxiter=100, disp=0)
 
     # Forecast ("The result of the forecast() function is an array containing the forecast value, the standard error of the forecast, and the confidence interval information.")
-    if exogenous is not None:
+    if exog_test is not None:
         f = res.get_forecast(forecasts, exog=exog_test.iloc[-forecasts:,:].astype('float')).summary_frame()
 
         # Forecast index
@@ -112,8 +109,8 @@ def forecast_plot(dataframe, arima_mod, forecasts=12, n_test_obs, outer_interval
     ax.plot(dataframe.index, dataframe, color='black', label='Training set')
     ax.plot(f_ix, pred_mean, color='blue', label='Forecast')
     # Confidence intervals
-    plt.fill_between(f_ix, under_outer, over_outer, color='b', alpha=0.2, label='{}% confidence interval'.format(int(outer_interval*100)))
-    plt.fill_between(f_ix, under_inner, over_inner, color='b', alpha=0.4, label='{}% confidence interval'.format(int(inner_interval*100)))
+    #plt.fill_between(f_ix, under_outer, over_outer, color='b', alpha=0.2, label='{}% confidence interval'.format(int(outer_interval*100)))
+    #plt.fill_between(f_ix, under_inner, over_inner, color='b', alpha=0.4, label='{}% confidence interval'.format(int(inner_interval*100)))
 
 
     order = arima_mod.order
@@ -615,7 +612,7 @@ forecasts=12
 f = results_exog.get_forecast(forecasts, exog=exog.iloc[-forecasts:,:].astype('float')).summary_frame()
 f_ix = f.index
 pred_mean = f['mean'] # prediction mean
-forecast_plot(df_no.pmi, arima_auto, forecasts=30, y_label="PMI", exogenous=exog) # plotting forecast
+forecast_plot(df_no.pmi, arima_auto, forecasts=30, y_label="PMI", exog_test=exog) # plotting forecast
 
 # Dynamic model with only previous periods for exogenous variables
 exog_prev = df_no.drop(['eur_per_MWh', 'pmi', 'usd_per_MWh', 'usd_per_barrel_x', 'usd_per_barrel_y'], axis=1)
@@ -631,60 +628,64 @@ results_exog_prev = arima_exog_prev.fit(maxiter=300)
 # Need to find ARIMA terms for all countries. Using exog with only previous periods (only lags)
 n_test_obs = 12
 # Norway
+df_no.index = pd.DatetimeIndex(df_no.index).to_period('M')
 df_no_train = df_no.iloc[:-n_test_obs,:]
 df_no_test = df_no.iloc[-n_test_obs:,:]
 exog_no_train = df_no_train.drop(['eur_per_MWh', 'pmi', 'usd_per_MWh', 'usd_per_barrel_x', 'usd_per_barrel_y'], axis=1)
 exog_no_test = df_no_test.drop(['eur_per_MWh', 'pmi', 'usd_per_MWh', 'usd_per_barrel_x', 'usd_per_barrel_y'], axis=1)
-model_no = auto_arima(df_no_train.pmi, m = 12, exogenous=exog_no_train.to_numpy(),
-                             max_order = None, max_p = 5, max_q = 5, max_d = 4, max_P = 3, max_Q = 5, max_D = 4,
-                             maxiter = 50, alpha = 0.05, n_jobs = -1, trend = 'ct', information_criterion = 'aic',
-                             out_of_sample = int(df_no_train.shape[0]*0.2))
-model_no.summary()
-arima_no = SARIMAX(df_no_train.pmi, order=(1,0,1), seasonal_order=(3,0,3,12), exog=exog_no_train.astype('float'))
+#model_no = auto_arima(df_no_train.pmi, m = 12, exogenous=exog_no_train.to_numpy(),
+#                             max_order = None, max_p = 5, max_q = 5, max_d = 4, max_P = 3, max_Q = 5, max_D = 4,
+#                             maxiter = 50, alpha = 0.05, n_jobs = -1, trend = 'ct', information_criterion = 'aic')
+#model_no.summary()
+arima_no = SARIMAX(df_no_train.pmi, order=(2,0,1), seasonal_order=(2,0,2,12), exog=exog_no_train.astype('float'))
 
 # Denmark
+df_dk.index = pd.DatetimeIndex(df_dk.index).to_period('M')
 df_dk_train = df_dk.iloc[:-n_test_obs,:]
 df_dk_test = df_dk.iloc[-n_test_obs:,:]
 exog_dk_train = df_dk_train.drop(['eur_per_MWh', 'pmi', 'usd_per_MWh', 'usd_per_barrel_x', 'usd_per_barrel_y'], axis=1)
 exog_dk_test = df_dk_test.drop(['eur_per_MWh', 'pmi', 'usd_per_MWh', 'usd_per_barrel_x', 'usd_per_barrel_y'], axis=1)
-model_dk = auto_arima(df_dk_train.pmi, m = 12, exogenous=exog_dk_train.to_numpy(),
-                             max_order = None, max_p = 5, max_q = 5, max_d = 4, max_P = 3, max_Q = 5, max_D = 4,
-                             maxiter = 50, alpha = 0.05, n_jobs = -1, trend = 'ct', information_criterion = 'aic',
-                             out_of_sample = int(df_dk_train.shape[0]*0.2))
-model_dk.summary()
-arima_dk = SARIMAX(df_dk_train.pmi, order=(1,0,1), seasonal_order=(3,0,3,12), exog=exog_dk_train.astype('float'))
+#model_dk = auto_arima(df_dk_train.pmi, m = 12, exogenous=exog_dk_train.to_numpy(),
+#                             max_order = None, max_p = 5, max_q = 5, max_d = 4, max_P = 3, max_Q = 5, max_D = 4,
+#                             maxiter = 50, alpha = 0.05, n_jobs = -1, trend = 'ct', information_criterion = 'aic')
+#model_dk.summary()
+arima_dk = SARIMAX(df_dk_train.pmi, order=(1,0,1), seasonal_order=(0,0,1,12), exog=exog_dk_train.astype('float'))
 
 # UK
+df_uk.index = pd.DatetimeIndex(df_uk.index).to_period('M')
 df_uk_train = df_uk.iloc[:-n_test_obs,:]
 df_uk_test = df_uk.iloc[-n_test_obs:,:]
 exog_uk_train = df_uk_train.drop(['monthyear', 'gbp_per_MWh', 'pmi', 'usd_per_MWh', 'usd_per_barrel_x', 'usd_per_barrel_y'], axis=1)
 exog_uk_test = df_uk_test.drop(['monthyear', 'gbp_per_MWh', 'pmi', 'usd_per_MWh', 'usd_per_barrel_x', 'usd_per_barrel_y'], axis=1)
-model_uk = auto_arima(df_uk_train.pmi, m = 12, exogenous=exog_uk_train.to_numpy(),
-                             max_order = None, max_p = 5, max_q = 5, max_d = 4, max_P = 3, max_Q = 5, max_D = 4,
-                             maxiter = 50, alpha = 0.05, n_jobs = -1, trend = 'ct', information_criterion = 'aic',
-                             out_of_sample = int(df_uk_train.shape[0]*0.2))
-model_uk.summary()
-arima_uk = SARIMAX(df_uk_train.pmi, order=(1,0,1), seasonal_order=(3,0,3,12), exog=exog_uk_train.astype('float'))
+#model_uk = auto_arima(df_uk_train.pmi, m = 12, exogenous=exog_uk_train.to_numpy(),
+#                             max_order = None, max_p = 5, max_q = 5, max_d = 4, max_P = 3, max_Q = 5, max_D = 4,
+#                             maxiter = 50, alpha = 0.05, n_jobs = -1, trend = 'ct', information_criterion = 'aic')
+#model_uk.summary()
+arima_uk = SARIMAX(df_uk_train.pmi, order=(1,0,2), exog=exog_uk_train.astype('float'))
 
 # US
+df_us.index = pd.DatetimeIndex(df_us.index).to_period('M')
 df_us_train = df_us.iloc[:-n_test_obs,:]
 df_us_test = df_us.iloc[-n_test_obs:,:]
 exog_us_train = df_us_train.drop(['pmi', 'usd_per_MWh', 'usd_per_barrel_x', 'usd_per_barrel_y'], axis=1)
 exog_us_test = df_us_test.drop(['pmi', 'usd_per_MWh', 'usd_per_barrel_x', 'usd_per_barrel_y'], axis=1)
-model_us = auto_arima(df_us_train.pmi, m = 12, exogenous=exog_us_train.to_numpy(),
-                             max_order = None, max_p = 5, max_q = 5, max_d = 4, max_P = 3, max_Q = 5, max_D = 4,
-                             maxiter = 50, alpha = 0.05, n_jobs = -1, trend = 'ct', information_criterion = 'aic',
-                             out_of_sample = int(df_us_train.shape[0]*0.2))
-model_us.summary()
-arima_us = SARIMAX(df_us_train.pmi, order=(1,0,1), seasonal_order=(3,0,3,12), exog=exog_us_train.astype('float'))
+#model_us = auto_arima(df_us_train.pmi, m = 12, exogenous=exog_us_train.to_numpy(),
+#                             max_order = None, max_p = 5, max_q = 5, max_d = 4, max_P = 3, max_Q = 5, max_D = 4,
+#                             maxiter = 50, alpha = 0.05, n_jobs = -1, trend = 'ct', information_criterion = 'aic')
+#model_us.summary()
+arima_us = SARIMAX(df_us_train.pmi, order=(1,0,0), seasonal_order=(0,0,1,12), exog=exog_us_train.astype('float'))
 
 # Plotting forecasts
-forecast_plot(df_no.pmi, arima_no, forecasts=24, y_label="PMI", exog_test=exog_no_test)
-forecast_plot(df_dk.pmi, arima_dk, forecasts=24, y_label="PMI", exog_test=exog_dk_test)
-forecast_plot(df_uk.pmi, arima_uk, forecasts=24, y_label="PMI", exog_test=exog_uk_test)
-forecast_plot(df_us.pmi, arima_us, forecasts=24, y_label="PMI", exog_test=exog_us_test)
+forecast_plot(df_no.pmi, arima_no, forecasts=n_test_obs, y_label="PMI", exog_test=exog_no_test)
+forecast_plot(df_dk.pmi, arima_dk, forecasts=n_test_obs, y_label="PMI", exog_test=exog_dk_test)
+forecast_plot(df_uk.pmi, arima_uk, forecasts=n_test_obs, y_label="PMI", exog_test=exog_uk_test)
+forecast_plot(df_us.pmi, arima_us, forecasts=n_test_obs, y_label="PMI", exog_test=exog_us_test)
 
 
 # TODO Lag et test set for å predikere 2019.
 # TODO Lag dynamic models for de andre landene
-# TODO Etter at alt annet (inkluder andre ML-modeller) er ferdig: Prediker resten av 2020 (om det er plass)
+# TODO Etter at alt annet (inkludert andre ML-modeller) er ferdig: Predikér resten av 2020 (om det er plass)
+
+'''
+Developing Random Forest model to predict if PMI will go up or down based on lagged oil price and electricity variables
+'''
