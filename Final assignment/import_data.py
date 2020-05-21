@@ -141,16 +141,19 @@ def plot_autocorrelation(dict, column_index):
     print('ADFuller test to check for stationarity (H0 is that there is non-stationarity):')
     for i in range(len(list(dict.values()))):
         df = list(dict.values())[i].dropna()
+        p_val = adfuller(df.iloc[:, column_index])[1] # ADFuller test
+
         title = list(dict.keys())[i]
 
-        plot_pacf(df.iloc[:,column_index], ax=axes[i,0], title=title)
-        plot_acf(df.iloc[:,column_index], ax=axes[i,1], title=title)
+        plot_pacf(df.iloc[:,column_index], ax=axes[0,i], title=title)
+        axes[0,i].text(x=4, y=0.85, s='ADFuller: {}'.format(round(p_val,4)), fontdict={'color':'#8b0000'})
+        plot_acf(df.iloc[:,column_index], ax=axes[1,i], title=title)
 
         # Print ADFuller test
-        p_val = adfuller(df.iloc[:, column_index])[1]
         print('P-value of {c}: {p}'.format(c=title, p=p_val))
 
     fig.align_ylabels()
+    plt.savefig('plots/pmi_pacf.png')
     plt.show()
 
 # Function to plot forecasts
@@ -460,7 +463,7 @@ Investigating autocorrelation for all time series, should any of the series be s
 # Plotting ACF and PACF
 '''
 # PMI
-fig, axes = plt.subplots(nrows=6, ncols=2, figsize=(16,32))
+fig, axes = plt.subplots(ncols=len(pmi_dict.keys()), nrows=2, figsize=(4.5,9))
 plt.subplots_adjust(hspace=0.4)
 title_size = 15
 title_type = 'bold'
