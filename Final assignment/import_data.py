@@ -782,3 +782,6 @@ fi = pd.DataFrame({'feature': list(exog_us_test.columns),
                    'importance': model.feature_importances_}). \
     sort_values('importance', ascending = False)
 fi.head()
+
+
+# TODO: Compare results to random walk/naïve models to see if the models are better than guessing for prediction.
