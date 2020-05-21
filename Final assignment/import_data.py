@@ -17,7 +17,9 @@ from statsmodels.tsa.statespace.sarimax import SARIMAX
 from pmdarima.arima import auto_arima
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import roc_auc_score, confusion_matrix, plot_confusion_matrix
-
+import warnings
+from pandas.core.common import SettingWithCopyWarning
+warnings.simplefilter(action="ignore", category=SettingWithCopyWarning)
 
 # Importing currency exchange rates
 cur = pd.read_csv('https://raw.githubusercontent.com/ysture/ENE434/master/Final%20assignment/input/macrobond_currency.csv',
@@ -78,6 +80,12 @@ def convert_currency(df):
 def convert_dtypes(df):
     df = df.astype({'pmi':'float'})
     df['month'] = pd.to_datetime(df['month'])
+    return df
+
+# Making date the index for all dataframes
+def month_as_index(df):
+    df.index = df.month
+    df.drop(['month'], inplace=True, axis=1)
     return df
 
 # Shifting month one month back (for UK and Germany PMI data)
@@ -196,7 +204,6 @@ def forecast_plot(dataframe, arima_mod, forecasts=12, outer_interval=0.95, inner
 
 
 ### PMI
-
 ## Norway
 # Ordinary
 pmi_no_list = read_pdf(
@@ -339,37 +346,38 @@ Descriptive statistics in this order:
 2. Electricity prices
 3. Oil prices
 '''
-
+#### Decomposed series
 ### PMI
-# In a 2x3 grid (all data available)
 pmi_dk_decomp = seasonal_decompose(pmi_dk.pmi, period=12).trend.dropna()
 pmi_dk_seasadj = pd.DataFrame({'month':pmi_dk.month[pmi_dk.index.isin(pmi_dk_decomp.index)],
-                              'pmi':pmi_dk_decomp})
+                               'pmi':pmi_dk_decomp})
 
 
 pmi_dict = {'Norway':pmi_no,
-            'Norway (seas. adj)':pmi_no_seasadj,
             'Denmark':pmi_dk,
             'UK':pmi_uk,
             'US':pmi_us}
 
 
-fig, ax = plt.subplots(ncols=2, nrows=3)
+# Each PMI series individually
+fig, ax = plt.subplots(ncols=1, nrows=len(pmi_dict.keys()), figsize=(6,8))
 i=0
+plt.subplots_adjust(hspace=0.5)
 for row in ax:
-    for col in row:
-        df = list(pmi_dict.values())[i]
-        col.plot(df['month'], df['pmi'])
-        title = list(pmi_dict.keys())[i] + ' PMI'
-        col.set_title(title)
-        col.tick_params(axis='x', labelrotation=45)
-        # Next iteration
-        i+=1
+    df = list(pmi_dict.values())[i]
+    row.plot(df['month'], df['pmi'])
+    title = list(pmi_dict.keys())[i] + ' PMI'
+    row.set_title(title)
+    row.tick_params(axis='x', labelrotation=0)
+    # Next iteration
+    i+=1
+plt.savefig('plots/pmi_from_start.png')
 plt.show()
+
 
 # In a single plot (from 2008)
 start_date = np.datetime64(date(2008, 1, 1))
-fig, ax = plt.subplots()
+fig, ax = plt.subplots(figsize=(8,5))
 i=0
 for i in range(len(pmi_dict.values())):
     df = list(pmi_dict.values())[i]
@@ -378,7 +386,10 @@ for i in range(len(pmi_dict.values())):
     ax.plot(df['month'], df['pmi'], label=label)
     ax.set_title('PMI 2008-2020', fontdict={'size':18})
 plt.legend(loc='best')
+plt.savefig('plots/pmi_from_08.png')
 plt.show()
+
+
 
 ### Electricity prices
 el_no = el_no[['month', 'usd_per_MWh', 'eur_per_MWh']]
@@ -392,7 +403,7 @@ el_dict = {'Norway':el_no,
            'Denmark':el_dk}
 # In a single plot
 start_date = np.datetime64(date(2005, 1, 1))
-fig, ax = plt.subplots()
+fig, ax = plt.subplots(figsize=(8,5))
 i=0
 for i in range(len(el_dict.values())):
     df = list(el_dict.values())[i]
@@ -401,16 +412,18 @@ for i in range(len(el_dict.values())):
     label = list(el_dict.keys())[i]
     ax.plot(df['month'], df['usd_per_MWh'], label=label)
     ax.set_title('$/MWh 2005-2020', fontdict={'size':18})
-plt.legend(loc='best')
+plt.legend(loc='upper right')
+plt.savefig('plots/el_from_04.png')
 plt.show()
 
 
 ### Oil prices
-fig, ax = plt.subplots()
+fig, ax = plt.subplots(figsize=(8,5))
 ax.plot(brent.month, brent.usd_per_barrel, label='Brent')
 ax.plot(wti.month, wti.usd_per_barrel, label='WTI')
-ax.set_title('$/barrel 1987-2020')
+ax.set_title('$/Barrel 1986-2020')
 plt.legend(loc='best')
+plt.savefig('plots/oil.png')
 plt.show()
 
 
@@ -502,11 +515,6 @@ pmi_uk = pmi_uk[pmi_uk.month.isin(el_uk.month)]
 pmi_us = pmi_us[pmi_us.month.isin(el_us.month)]
 
 # Making date index for all dataframes
-def month_as_index(df):
-    df.index = df.month
-    df.drop(['month'], inplace=True, axis=1)
-    return df
-
 pmi_no = month_as_index(pmi_no)
 pmi_dk = month_as_index(pmi_dk)
 pmi_us = month_as_index(pmi_us)
