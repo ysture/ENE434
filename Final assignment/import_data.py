@@ -107,7 +107,6 @@ def plot_decomposition(df, column_index, plot_title):
         df = df.dropna()
         value_column = df.iloc[:, column_index]
         decomp = seasonal_decompose(value_column, period=12)
-        #TODO prøv med period=52 siden man har ukentlig data
 
         fig, axes = plt.subplots(nrows=4, ncols=1)
 
@@ -216,17 +215,13 @@ pmi_ge['month'] = shift_month_back(pmi_ge)
 pmi_no_list = read_pdf(
     'C:\\Users\\Yngve\\Google Drive\\Skolerelatert\\NHH\\Master\\ENE434\\Final assignment\\input\\PMI_norway_pdf.pdf',
     pages=[1, 2, 3, 4, 5], multiple_tables=False,
-    pandas_options={'header': None,
-                    'usecols':[0,1],
-                    'names': ['month', 'pmi']})
+    pandas_options={'header': None, 'usecols':[0,1], 'names': ['month', 'pmi']})
 
 # Seasonally adjusted
 pmi_no_seasadj_list = read_pdf(
     'C:\\Users\\Yngve\\Google Drive\\Skolerelatert\\NHH\\Master\\ENE434\\Final assignment\\input\\PMI_norway_pdf.pdf',
     pages=[6, 7, 8, 9, 10], multiple_tables=False,
-    pandas_options={'header': None,
-                    'usecols':[0,1],
-                    'names': ['month', 'pmi']})
+    pandas_options={'header': None, 'usecols':[0,1], 'names': ['month', 'pmi']})
 
 
 pmi_no = pmi_no_list[0].dropna()
