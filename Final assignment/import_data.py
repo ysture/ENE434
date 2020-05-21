@@ -1,5 +1,7 @@
-'''File to import data used in final ENE434 Assignment
-Mangler: Gasspriser
+'''
+Script with final, individual ENE434 Assignment.
+The script investigates the relation between Purchasing Managers' Index (PMI), oil price and national electricity
+prices in Norway, Denmark, UK and US.
 '''
 import pandas as pd
 import numpy as np
@@ -16,9 +18,6 @@ from pmdarima.arima import auto_arima
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import roc_auc_score, confusion_matrix, plot_confusion_matrix
 
-
-
-#TODO Finn bedre kilde til strømpriser fra Tyskland (sjekk link fra Hendrik)
 
 # Importing currency exchange rates
 cur = pd.read_csv('https://raw.githubusercontent.com/ysture/ENE434/master/Final%20assignment/input/macrobond_currency.csv',
@@ -197,18 +196,6 @@ def forecast_plot(dataframe, arima_mod, forecasts=12, outer_interval=0.95, inner
 
 
 ### PMI
-# Germany
-pmi_ge = pd.read_csv('https://raw.githubusercontent.com/ysture/ENE434/master/Final%20assignment/input/germany.markit-manufacturing-pmi.csv',
-                      sep='\t',
-                      usecols=[0,1],
-                      header=0,
-                      names=['month', 'pmi'])
-pmi_ge['month'] = pd.to_datetime(pmi_ge['month'], dayfirst=True)
-pmi_ge = remove_projections(pmi_ge)
-
-# Shifting month one month back
-pmi_ge['month'] = shift_month_back(pmi_ge)
-
 
 ## Norway
 # Ordinary
@@ -264,7 +251,7 @@ el_uk = pd.read_csv(
     names=['month', 'gbp_per_MWh'])
 el_uk['month'] = pd.to_datetime(el_uk['month'], dayfirst=True)
 
-## NordPool (Norway, Netherlands and Germany)
+## NordPool (Norway and Denmark)
 nordpool_files = [f for f in os.listdir('input/') if f.startswith('elspot-prices_')]
 np_df = import_nordpool()
 np_df.columns
@@ -282,12 +269,6 @@ el_dk = np_df[['DK1', 'DK2']].astype('float')
 el_dk = pd.concat([np_df.month, el_dk.mean(axis=1)], axis=1)
 el_dk.columns = ['month', 'eur_per_MWh']
 el_dk.dropna(inplace=True)
-
-# Germany (only 9 months). Only available nine months for Netherlands as well
-el_ge = np_df[['DE-LU']].astype('float')
-el_ge = pd.concat([np_df.month, el_ge], axis=1)
-el_ge.columns = ['month', 'eur_per_MWh']
-el_ge.dropna(inplace=True)
 
 # US
 us_filenames = os.listdir('input/ice_electric-historical')
@@ -323,7 +304,6 @@ el_us.sort_values(by='month', inplace=True)
 el_uk = convert_currency(el_uk)
 el_no = convert_currency(el_no)
 el_dk = convert_currency(el_dk)
-el_ge = convert_currency(el_ge)
 
 ### Oil and gas
 # WTI
@@ -349,7 +329,6 @@ del([merged, pmi_no_list, pmi_udk, us_filenames, weights, g, np_df, us_df, nordp
 pmi_no = convert_dtypes(pmi_no)
 pmi_no_seasadj = convert_dtypes(pmi_no_seasadj)
 pmi_dk = convert_dtypes(pmi_dk)
-pmi_ge = convert_dtypes(pmi_ge)
 pmi_uk = convert_dtypes(pmi_uk)
 pmi_us = convert_dtypes(pmi_us)
 
@@ -371,7 +350,6 @@ pmi_dk_seasadj = pd.DataFrame({'month':pmi_dk.month[pmi_dk.index.isin(pmi_dk_dec
 pmi_dict = {'Norway':pmi_no,
             'Norway (seas. adj)':pmi_no_seasadj,
             'Denmark':pmi_dk,
-            'Germany':pmi_ge,
             'UK':pmi_uk,
             'US':pmi_us}
 
@@ -448,7 +426,6 @@ plot_decomposition(pmi_dk, 1, 'Denmark PMI')
 plot_decomposition(pmi_no, 1, 'Norway PMI')
 plot_decomposition(pmi_us, 1, 'US PMI')
 plot_decomposition(pmi_uk, 1, 'UK PMI')
-plot_decomposition(pmi_ge, 1, 'Germany PMI')
 
 # Electricity
 plot_decomposition(el_dk, 2, 'Electricity Denmark')
@@ -516,8 +493,6 @@ el_uk['el_lag_1'] = el_uk['usd_per_MWh'].shift(-1)
 el_uk['el_lag_2'] = el_uk['usd_per_MWh'].shift(-2)
 el_us['el_lag_1'] = el_us['usd_per_MWh'].shift(-1)
 el_us['el_lag_2'] = el_us['usd_per_MWh'].shift(-2)
-el_ge['el_lag_1'] = el_ge['usd_per_MWh'].shift(-1)
-el_ge['el_lag_2'] = el_ge['usd_per_MWh'].shift(-2)
 
 # Making data for all countries the same length. The length of the time series
 # is decided by the shortest time series length for each country
@@ -541,7 +516,6 @@ el_dk = month_as_index(el_dk)
 el_no = month_as_index(el_no)
 el_uk = month_as_index(el_uk)
 el_us = month_as_index(el_us)
-el_ge = month_as_index(el_ge)
 
 brent = month_as_index(brent)
 wti = month_as_index(wti)
@@ -569,12 +543,6 @@ df_us = pd.merge(pmi_us, el_us, how='left', left_index=True, right_index=True)
 df_us = pd.merge(df_us, brent, how='left', left_index=True, right_index=True)
 df_us = pd.merge(df_us, wti, how='left', left_index=True, right_index=True)
 df_us = df_us.dropna()
-
-# Creating one dataframe for each country to include exogenous variables and PMI in the same df
-df_ge = pd.merge(pmi_ge, el_ge, how='left', left_index=True, right_index=True)
-df_ge = pd.merge(df_ge, brent, how='left', left_index=True, right_index=True)
-df_ge = pd.merge(df_ge, wti, how='left', left_index=True, right_index=True)
-df_ge = df_ge.dropna()
 
 
 
