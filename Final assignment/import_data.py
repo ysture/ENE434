@@ -153,7 +153,7 @@ def plot_autocorrelation(dict, column_index, filename, suptitle):
 
         # Print ADFuller test
         print('P-value of {c}: {p}'.format(c=title, p=p_val))
-    plt.suptitle(suptitle)
+    plt.suptitle(suptitle, fontweight='bold')
     #fig.align_ylabels()
     plt.savefig('plots/{}.png'.format(filename))
     plt.show()
@@ -426,7 +426,7 @@ plt.show()
 fig, ax = plt.subplots(figsize=(8,5))
 ax.plot(brent.month, brent.usd_per_barrel, label='Brent')
 ax.plot(wti.month, wti.usd_per_barrel, label='WTI')
-ax.set_title('$/Barrel 1986-2020')
+ax.set_title('$/Barrel 1986-2020', fontdict={'size':18})
 plt.legend(loc='best')
 plt.savefig('plots/oil.png')
 plt.show()
@@ -616,7 +616,7 @@ df_us['dir'] = [1 if x > 0 else 0 for x in df_us.pmi - df_us.pmi.shift(1)]
 # Need to find ARIMA terms for all countries. Using exog with only previous periods (only lags)
 n_test_obs = 12
 # Norway
-df_no.index = pd.DatetimeIndex(df_no.index).to_period('M')
+#df_no.index = pd.DatetimeIndex(df_no.index).to_period('M')
 df_no_train = df_no.iloc[:-n_test_obs,:]
 df_no_test = df_no.iloc[-n_test_obs:,:]
 exog_no_train = df_no_train.drop(['dir', 'eur_per_MWh', 'pmi', 'usd_per_MWh', 'usd_per_barrel_x', 'usd_per_barrel_y'], axis=1)
@@ -680,10 +680,61 @@ f.index = df_us_test.index
 
 
 # Plotting forecasts
-forecast_plot(df_no.pmi, arima_no, forecasts=n_test_obs, y_label="PMI", exog_test=exog_no_test)
-forecast_plot(df_dk.pmi, arima_dk, forecasts=n_test_obs, y_label="PMI", exog_test=exog_dk_test)
-forecast_plot(df_uk.pmi, arima_uk, forecasts=n_test_obs, y_label="PMI", exog_test=exog_uk_test)
-forecast_plot(df_us.pmi, arima_us, forecasts=n_test_obs, y_label="PMI", exog_test=exog_us_test)
+forecast_plot(df_no_train.pmi, arima_no, forecasts=n_test_obs, y_label="PMI", exog_test=exog_no_test)
+forecast_plot(df_dk_train.pmi, arima_dk, forecasts=n_test_obs, y_label="PMI", exog_test=exog_dk_test)
+forecast_plot(df_uk_train.pmi, arima_uk, forecasts=n_test_obs, y_label="PMI", exog_test=exog_uk_test)
+forecast_plot(df_us_train.pmi, arima_us, forecasts=n_test_obs, y_label="PMI", exog_test=exog_us_test)
+
+## Plotting multiple forecasts
+# Norway
+n_fcasts=12
+f = res_no.get_forecast(n_fcasts, exog=exog_no_test.iloc[-n_fcasts:,:].astype('float')).summary_frame()
+preds = f['mean']
+train = df_no_train.pmi
+test = df_no_test.pmi
+
+fig, ax = plt.subplots(figsize=(10,5))
+ax.plot(train, label='Training set', color='black')
+ax.plot(preds, label='Forecast', color='blue')
+ax.plot(test, label='Test set', color='orange', linestyle='--')
+ax.set_ylabel('PMI')
+ax.set_title('Norway')
+plt.legend(loc='best')
+plt.show()
+
+# UK
+n_fcasts=12
+f = res_uk.get_forecast(n_fcasts, exog=exog_uk_test.iloc[-n_fcasts:,:].astype('float')).summary_frame()
+preds = f['mean']
+train = df_uk_train.pmi
+test = df_uk_test.pmi
+
+fig, ax = plt.subplots(figsize=(10,5))
+ax.plot(train, label='Training set', color='black')
+ax.plot(preds, label='Forecast', color='blue')
+ax.plot(test, label='Test set', color='orange', linestyle='--')
+ax.set_ylabel('PMI')
+ax.set_title('UK')
+plt.legend(loc='best')
+plt.show()
+
+# Denmark
+n_fcasts=12
+f = res_dk.get_forecast(n_fcasts, exog=exog_dk_test.iloc[-n_fcasts:,:].astype('float')).summary_frame()
+preds = f['mean']
+train = df_dk_train.pmi
+test = df_dk_test.pmi
+
+fig, ax = plt.subplots(figsize=(10,5))
+ax.plot(train, label='Training set', color='black')
+ax.plot(preds, label='Forecast', color='blue')
+ax.plot(test, label='Test set', color='orange', linestyle='--')
+ax.set_ylabel('PMI')
+ax.set_title('UK')
+plt.legend(loc='best')
+plt.show()
+
+
 
 # Calculating RMSE
 rmse_no =(((f['mean']-df_no_test.pmi)**2).mean())**0.5
