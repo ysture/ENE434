@@ -550,6 +550,7 @@ df_uk = pd.merge(pmi_uk, el_uk, how='left', left_index=True, right_index=True)
 df_uk = pd.merge(df_uk, brent, how='left', left_index=True, right_index=True)
 df_uk = pd.merge(df_uk, wti, how='left', left_index=True, right_index=True)
 df_uk = df_uk.dropna()
+df_uk.sort_index(inplace=True)
 
 # Creating one dataframe for each country to include exogenous variables and PMI in the same df
 df_us = pd.merge(pmi_us, el_us, how='left', left_index=True, right_index=True)
@@ -563,11 +564,11 @@ df_us = df_us.dropna()
 Developing dynamic models (SARIMA with explanatory variables) 
 '''
 # Norway
-model_auto = auto_arima(pmi_no.pmi, m = 12,
-                        max_order = None, max_p = 5, max_q = 5, max_d = 1, max_P = 3, max_Q = 5, max_D = 2,
-                        maxiter = 50, alpha = 0.05, n_jobs = -1, trend = 'ct', information_criterion = 'aic',
-                        out_of_sample = int(pmi_no.shape[0]*0.2))
-model_auto.summary()
+#model_auto = auto_arima(pmi_no.pmi, m = 12,
+#                        max_order = None, max_p = 5, max_q = 5, max_d = 1, max_P = 3, max_Q = 5, max_D = 2,
+#                        maxiter = 50, alpha = 0.05, n_jobs = -1, trend = 'ct', information_criterion = 'aic',
+#                        out_of_sample = int(pmi_no.shape[0]*0.2))
+#model_auto.summary()
 arima_auto = SARIMAX(pmi_no, order=(3,0,3))
 results_auto = arima_auto.fit(maxiter=100, disp=0)
 forecast_plot(pmi_no, arima_auto, forecasts=12, y_label="PMI")
@@ -614,9 +615,8 @@ df_us['dir'] = [1 if x > 0 else 0 for x in df_us.pmi - df_us.pmi.shift(1)]
 
 
 # Need to find ARIMA terms for all countries. Using exog with only previous periods (only lags)
-n_test_obs = 12
+n_test_obs = 24
 # Norway
-#df_no.index = pd.DatetimeIndex(df_no.index).to_period('M')
 df_no_train = df_no.iloc[:-n_test_obs,:]
 df_no_test = df_no.iloc[-n_test_obs:,:]
 exog_no_train = df_no_train.drop(['dir', 'eur_per_MWh', 'pmi', 'usd_per_MWh', 'usd_per_barrel_x', 'usd_per_barrel_y'], axis=1)
@@ -628,10 +628,9 @@ exog_no_test = df_no_test.drop(['dir', 'eur_per_MWh', 'pmi', 'usd_per_MWh', 'usd
 arima_no_without_diff = SARIMAX(df_no_train.pmi, order=(2,0,1), seasonal_order=(2,0,2,12), exog=exog_no_train.astype('float'))
 arima_no = SARIMAX(df_no_train.pmi, order=(2,1,2), seasonal_order=(1,0,1,12), exog=exog_no_train.astype('float'))
 res_no = arima_no.fit(maxiter=100, disp=0)
-f = res_no.get_forecast(n_test_obs, exog=exog_no_test.iloc[-n_test_obs:,:].astype('float')).summary_frame()
+res_no_without_diff = arima_no_without_diff.fit(maxiter=100, disp=0)
 
 # Denmark
-df_dk.index = pd.DatetimeIndex(df_dk.index).to_period('M')
 df_dk_train = df_dk.iloc[:-n_test_obs,:]
 df_dk_test = df_dk.iloc[-n_test_obs:,:]
 exog_dk_train = df_dk_train.drop(['dir', 'eur_per_MWh', 'pmi', 'usd_per_MWh', 'usd_per_barrel_x', 'usd_per_barrel_y'], axis=1)
@@ -643,10 +642,10 @@ exog_dk_test = df_dk_test.drop(['dir', 'eur_per_MWh', 'pmi', 'usd_per_MWh', 'usd
 arima_dk_without_diff = SARIMAX(df_dk_train.pmi, order=(1,0,1), seasonal_order=(0,0,1,12), exog=exog_dk_train.astype('float'))
 arima_dk = SARIMAX(df_dk_train.pmi, order=(0,1,1), seasonal_order=(0,0,1,12), exog=exog_dk_train.astype('float'))
 res_dk = arima_dk.fit(maxiter=100, disp=0)
-f = res_dk.get_forecast(n_test_obs, exog=exog_dk_test.iloc[-n_test_obs:,:].astype('float')).summary_frame()
+res_dk_without_diff = arima_dk_without_diff.fit(maxiter=100, disp=0)
 
 # UK
-df_uk.index = pd.DatetimeIndex(df_uk.index).to_period('M')
+df_uk.index.freq='MS'
 df_uk_train = df_uk.iloc[:-n_test_obs,:]
 df_uk_test = df_uk.iloc[-n_test_obs:,:]
 exog_uk_train = df_uk_train.drop(['dir', 'monthyear', 'gbp_per_MWh', 'pmi', 'usd_per_MWh', 'usd_per_barrel_x', 'usd_per_barrel_y'], axis=1)
@@ -658,82 +657,47 @@ exog_uk_test = df_uk_test.drop(['dir', 'monthyear', 'gbp_per_MWh', 'pmi', 'usd_p
 arima_uk_without_diff = SARIMAX(df_uk_train.pmi, order=(1,0,2), exog=exog_uk_train.astype('float'))
 arima_uk = SARIMAX(df_uk_train.pmi, order=(2,1,2), exog=exog_uk_train.astype('float'))
 res_uk = arima_uk.fit(maxiter=100, disp=0)
-f = res_uk.get_forecast(n_test_obs, exog=exog_uk_test.iloc[-n_test_obs:,:].astype('float')).summary_frame()
-f.index = df_uk_test.index
+res_uk_without_diff = arima_uk_without_diff.fit(maxiter=100, disp=0)
 
 
 # US
-df_us.index = pd.DatetimeIndex(df_us.index).to_period('M')
+df_us.index.freq='MS'
 df_us_train = df_us.iloc[:-n_test_obs,:]
 df_us_test = df_us.iloc[-n_test_obs:,:]
 exog_us_train = df_us_train.drop(['dir', 'pmi', 'usd_per_MWh', 'usd_per_barrel_x', 'usd_per_barrel_y'], axis=1)
 exog_us_test = df_us_test.drop(['dir', 'pmi', 'usd_per_MWh', 'usd_per_barrel_x', 'usd_per_barrel_y'], axis=1)
-model_us = auto_arima(df_us_train.pmi, m = 12, exogenous=exog_us_train.to_numpy(), d=1,
-                             max_order = None, max_p = 5, max_q = 5, max_d = 4, max_P = 3, max_Q = 5, max_D = 4,
-                             maxiter = 50, alpha = 0.05, n_jobs = -1, trend = 'ct', information_criterion = 'aic')
-model_us.summary()
+#model_us = auto_arima(df_us_train.pmi, m = 12, exogenous=exog_us_train.to_numpy(), d=1,
+#                             max_order = None, max_p = 5, max_q = 5, max_d = 4, max_P = 3, max_Q = 5, max_D = 4,
+#                             maxiter = 50, alpha = 0.05, n_jobs = -1, trend = 'ct', information_criterion = 'aic')
+#model_us.summary()
 arima_us_without_diff = SARIMAX(df_us_train.pmi, order=(1,0,0), seasonal_order=(0,0,1,12), exog=exog_us_train.astype('float'))
 arima_us = SARIMAX(df_us_train.pmi, order=(0,1,0), seasonal_order=(0,0,1,12), exog=exog_us_train.astype('float'))
 res_us = arima_us.fit(maxiter=100, disp=0)
-f = res_us.get_forecast(n_test_obs, exog=exog_us_test.iloc[-n_test_obs:,:].astype('float')).summary_frame()
-f.index = df_us_test.index
+res_us_without_diff = arima_us_without_diff.fit(maxiter=100, disp=0)
 
-
-# Plotting forecasts
-forecast_plot(df_no_train.pmi, arima_no, forecasts=n_test_obs, y_label="PMI", exog_test=exog_no_test)
-forecast_plot(df_dk_train.pmi, arima_dk, forecasts=n_test_obs, y_label="PMI", exog_test=exog_dk_test)
-forecast_plot(df_uk_train.pmi, arima_uk, forecasts=n_test_obs, y_label="PMI", exog_test=exog_uk_test)
-forecast_plot(df_us_train.pmi, arima_us, forecasts=n_test_obs, y_label="PMI", exog_test=exog_us_test)
 
 ## Plotting multiple forecasts
-# Norway
-n_fcasts=12
-f = res_no.get_forecast(n_fcasts, exog=exog_no_test.iloc[-n_fcasts:,:].astype('float')).summary_frame()
-preds = f['mean']
-train = df_no_train.pmi
-test = df_no_test.pmi
+def plot_multiple_forecast(res, res_wd, train_set, test_set, exog_test, title):
+    n_test_obs = len(test_set)
+    preds = res.get_forecast(n_test_obs, exog=exog_test.astype('float')).summary_frame()['mean']
+    preds_wd = res_wd.get_forecast(n_test_obs, exog=exog_test.astype('float')).summary_frame()['mean']
 
-fig, ax = plt.subplots(figsize=(10,5))
-ax.plot(train, label='Training set', color='black')
-ax.plot(preds, label='Forecast', color='blue')
-ax.plot(test, label='Test set', color='orange', linestyle='--')
-ax.set_ylabel('PMI')
-ax.set_title('Norway')
-plt.legend(loc='best')
-plt.show()
+    # Plotting
+    fig, ax = plt.subplots(figsize=(10,5))
+    ax.plot(train_set, label='Training set', color='black')
+    ax.plot(preds, label='Forecast (d=1)', color='blue')
+    ax.plot(preds_wd, label='Forecast (d=0)', color='red')
+    ax.plot(test_set, label='Test set', color='orange', linestyle='--')
+    ax.set_ylabel('PMI')
+    ax.set_title(title, fontsize=18)
+    plt.legend(loc='best')
+    plt.show()
 
-# UK
-n_fcasts=12
-f = res_uk.get_forecast(n_fcasts, exog=exog_uk_test.iloc[-n_fcasts:,:].astype('float')).summary_frame()
-preds = f['mean']
-train = df_uk_train.pmi
-test = df_uk_test.pmi
-
-fig, ax = plt.subplots(figsize=(10,5))
-ax.plot(train, label='Training set', color='black')
-ax.plot(preds, label='Forecast', color='blue')
-ax.plot(test, label='Test set', color='orange', linestyle='--')
-ax.set_ylabel('PMI')
-ax.set_title('UK')
-plt.legend(loc='best')
-plt.show()
-
-# Denmark
-n_fcasts=12
-f = res_dk.get_forecast(n_fcasts, exog=exog_dk_test.iloc[-n_fcasts:,:].astype('float')).summary_frame()
-preds = f['mean']
-train = df_dk_train.pmi
-test = df_dk_test.pmi
-
-fig, ax = plt.subplots(figsize=(10,5))
-ax.plot(train, label='Training set', color='black')
-ax.plot(preds, label='Forecast', color='blue')
-ax.plot(test, label='Test set', color='orange', linestyle='--')
-ax.set_ylabel('PMI')
-ax.set_title('UK')
-plt.legend(loc='best')
-plt.show()
-
+# Plotting forecasts
+plot_multiple_forecast(res_no, res_no_without_diff, df_no_train.pmi, df_no_test.pmi, exog_no_test, 'Norway')
+plot_multiple_forecast(res_dk, res_dk_without_diff, df_dk_train.pmi, df_dk_test.pmi, exog_dk_test, 'Denmark')
+plot_multiple_forecast(res_uk, res_uk_without_diff, df_uk_train.pmi, df_uk_test.pmi, exog_uk_test, 'UK')
+plot_multiple_forecast(res_us, res_us_without_diff, df_us_train.pmi, df_us_test.pmi, exog_us_test, 'US')
 
 
 # Calculating RMSE
