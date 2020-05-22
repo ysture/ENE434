@@ -14,6 +14,7 @@ from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 from statsmodels.tsa.seasonal import seasonal_decompose
 from statsmodels.tsa.statespace.sarimax import SARIMAX
 from pmdarima.arima import auto_arima
+import matplotlib.lines as mlines
 from pmdarima.arima.utils import ndiffs, nsdiffs
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import roc_auc_score, confusion_matrix, plot_confusion_matrix
@@ -498,6 +499,8 @@ Preparing data for modelling
 
 # Preparing data for modelling
 # Creating lagged series
+brent['usd_per_barrel'] = brent['usd_per_barrel']
+wti['usd_per_barrel'] = wti['usd_per_barrel']
 brent['brent_lag_1'] = brent['usd_per_barrel'].shift(-1)
 brent['brent_lag_2'] = brent['usd_per_barrel'].shift(-2)
 wti['wti_lag_1'] = wti['usd_per_barrel'].shift(-1)
@@ -563,50 +566,11 @@ df_us = df_us.dropna()
 '''
 Developing dynamic models (SARIMA with explanatory variables) 
 '''
-# Norway
-#model_auto = auto_arima(pmi_no.pmi, m = 12,
-#                        max_order = None, max_p = 5, max_q = 5, max_d = 1, max_P = 3, max_Q = 5, max_D = 2,
-#                        maxiter = 50, alpha = 0.05, n_jobs = -1, trend = 'ct', information_criterion = 'aic',
-#                        out_of_sample = int(pmi_no.shape[0]*0.2))
-#model_auto.summary()
-arima_auto = SARIMAX(pmi_no, order=(3,0,3))
-results_auto = arima_auto.fit(maxiter=100, disp=0)
-forecast_plot(pmi_no, arima_auto, forecasts=12, y_label="PMI")
-
-# Norway with exogeneous variables
-
 # Formally prove that only one differencing is needed
 df_no = df_no.dropna()
 ndiffs(df_no.pmi, test='adf')
 nsdiffs(df_no.pmi, test='ch', m=12)
 
-'''
-Preparing dynamic model (trying out with exogenous variables from both current and previous periods)
-# Dynamic model with exogenous variables (including current period)
-exog = df_no.drop(['eur_per_MWh', 'pmi'], axis=1)
-model_exog = auto_arima(df_no.pmi, m = 12, exogenous=exog.to_numpy(),
-                        max_order = None, max_p = 5, max_q = 5, max_d = 4, max_P = 3, max_Q = 5, max_D = 4,
-                        maxiter = 50, alpha = 0.05, n_jobs = -1, trend = 'ct', information_criterion = 'aic',
-                        out_of_sample = int(df_no.shape[0]*0.2))
-model_exog.summary()
-arima_exog = SARIMAX(df_no.pmi, order=(1,0,2), seasonal_order=(3,0,3,12), exog=exog.astype('float'))
-results_exog = arima_exog.fit(maxiter=300)
-forecasts=12
-f = results_exog.get_forecast(forecasts, exog=exog.iloc[-forecasts:,:].astype('float')).summary_frame()
-f_ix = f.index
-pred_mean = f['mean'] # prediction mean
-forecast_plot(df_no.pmi, arima_auto, forecasts=30, y_label="PMI", exog_test=exog) # plotting forecast
-
-# Dynamic model with only previous periods for exogenous variables
-exog_prev = df_no.drop(['eur_per_MWh', 'pmi', 'usd_per_MWh', 'usd_per_barrel_x', 'usd_per_barrel_y'], axis=1)
-model_exog_prev = auto_arima(df_no.pmi, m = 12, exogenous=exog_prev.to_numpy(),
-                             max_order = None, max_p = 5, max_q = 5, max_d = 4, max_P = 3, max_Q = 5, max_D = 4,
-                             maxiter = 50, alpha = 0.05, n_jobs = -1, trend = 'ct', information_criterion = 'aic',
-                             out_of_sample = int(df_no.shape[0]*0.2))
-model_exog_prev.summary()
-arima_exog_prev = SARIMAX(df_no.pmi, order=(1,0,1), seasonal_order=(3,0,3,12), exog=exog.astype('float'))
-results_exog_prev = arima_exog_prev.fit(maxiter=300)
-'''
 # Adding direction column in all data frames (1 if PMI goes up, 0 if down)
 df_no['dir'] = [1 if x > 0 else 0 for x in df_no.pmi - df_no.pmi.shift(1)]
 df_dk['dir'] = [1 if x > 0 else 0 for x in df_dk.pmi - df_dk.pmi.shift(1)]
@@ -701,10 +665,130 @@ plot_multiple_forecast(res_us, res_us_without_diff, df_us_train.pmi, df_us_test.
 
 
 # Calculating RMSE
-rmse_no =(((f['mean']-df_no_test.pmi)**2).mean())**0.5
-rmse_dk =(((f['mean']-df_dk_test.pmi)**2).mean())**0.5
-rmse_uk =(((f['mean']-df_uk_test.pmi)**2).mean())**0.5
-rmse_us =(((f['mean']-df_us_test.pmi)**2).mean())**0.5
+rmse_no =(((res_no.get_forecast(n_test_obs, exog=exog_no_test.astype('float')).summary_frame()['mean']-df_no_test.pmi)**2).mean())**0.5
+rmse_dk =(((res_dk.get_forecast(n_test_obs, exog=exog_dk_test.astype('float')).summary_frame()['mean']-df_dk_test.pmi)**2).mean())**0.5
+rmse_uk =(((res_uk.get_forecast(n_test_obs, exog=exog_uk_test.astype('float')).summary_frame()['mean']-df_uk_test.pmi)**2).mean())**0.5
+rmse_us =(((res_us.get_forecast(n_test_obs, exog=exog_us_test.astype('float')).summary_frame()['mean']-df_us_test.pmi)**2).mean())**0.5
+
+rmse_no_wd =(((res_no_without_diff.get_forecast(n_test_obs, exog=exog_no_test.astype('float')).summary_frame()['mean']-df_no_test.pmi)**2).mean())**0.5
+rmse_dk_wd =(((res_dk_without_diff.get_forecast(n_test_obs, exog=exog_dk_test.astype('float')).summary_frame()['mean']-df_dk_test.pmi)**2).mean())**0.5
+rmse_uk_wd =(((res_uk_without_diff.get_forecast(n_test_obs, exog=exog_uk_test.astype('float')).summary_frame()['mean']-df_uk_test.pmi)**2).mean())**0.5
+rmse_us_wd =(((res_us_without_diff.get_forecast(n_test_obs, exog=exog_us_test.astype('float')).summary_frame()['mean']-df_us_test.pmi)**2).mean())**0.5
+
+
+def rmse_column(df, n_test_obs, order, seasonal_order):
+
+    rmse_list = []
+    top = []
+    bottom = []
+    for i in range(1, n_test_obs+1):
+        train = df.iloc[:-i,:]
+        test = df.iloc[-i:,:]
+        exog_train = train[['el_lag_1', 'el_lag_2', 'brent_lag_1', 'brent_lag_2', 'wti_lag_1', 'wti_lag_2']]
+        exog_test = test[['el_lag_1', 'el_lag_2', 'brent_lag_1', 'brent_lag_2', 'wti_lag_1', 'wti_lag_2']]
+
+        arima = SARIMAX(train.pmi, order=order, seasonal_order=seasonal_order, exog=exog_train.astype('float'))
+        res = arima.fit(maxiter=100, disp=0)
+
+        f = res.get_forecast(i, exog=exog_test.astype('float')).summary_frame()
+        resid = abs(f['mean']-test.pmi)
+        rmse = ((resid**2).mean())**0.5
+
+        rmse_list.append(rmse)
+        top.append(max(resid))
+        bottom.append(min(resid))
+
+
+        print('Forecasting {} observations'.format(i))
+    final_df = pd.DataFrame(data={'rmse':rmse_list, 'top':top, 'bottom':bottom})
+    return final_df
+
+rmse_no = rmse_column(df_no, 24, arima_no.order, arima_no.seasonal_order)
+rmse_dk = rmse_column(df_dk, 24, arima_dk.order, arima_dk.seasonal_order)
+rmse_uk = rmse_column(df_uk, 24, arima_uk.order, arima_uk.seasonal_order)
+rmse_us = rmse_column(df_us, 24, arima_us.order, arima_us.seasonal_order)
+
+rmse_no_wd = rmse_column(df_no, 24, arima_no_without_diff.order, arima_no_without_diff.seasonal_order)
+rmse_dk_wd = rmse_column(df_dk, 24, arima_dk_without_diff.order, arima_dk_without_diff.seasonal_order)
+rmse_uk_wd = rmse_column(df_uk, 24, arima_uk_without_diff.order, arima_uk_without_diff.seasonal_order)
+rmse_us_wd = rmse_column(df_us, 24, arima_us_without_diff.order, arima_us_without_diff.seasonal_order)
+
+# Plotting RMSE
+def plot_rmse(rmse, rmse_wd, title, filename, ax):
+    col1 = 'black'
+    col2 = 'gray'
+    ax.errorbar(x=rmse.index, y=rmse.rmse, yerr=[rmse.rmse-rmse.bottom, rmse.top-rmse.rmse],
+                fmt='-o', capsize=5, errorevery=3, color=col1, label='d=1')
+    ax.errorbar(x=rmse_wd.index, y=rmse_wd.rmse, yerr=[rmse_wd.rmse-rmse_wd.bottom, rmse_wd.top-rmse_wd.rmse],
+                fmt='--o', capsize=5, errorevery=3, color=col2, fillstyle='none', label='d=0')
+    handles, labels = ax.get_legend_handles_labels()
+    full_line = mlines.Line2D([], [], linestyle='-', color=col1, label='d = 1')
+    dot_line = mlines.Line2D([], [], linestyle='--', color=col2, label='d = 0')
+    ax.legend(handles=[full_line, dot_line], loc='upper left')
+    ax.set_title(title, fontsize=18)
+    ax.set_ylabel('RMSE')
+
+fig, axes = plt.subplots(nrows=4, figsize=(8,10))
+plot_rmse(rmse_no, rmse_no_wd, 'RMSE - Norway', 'rmse_no', axes[0])
+plot_rmse(rmse_dk, rmse_dk_wd, 'RMSE - Denmark', 'rmse_dk', axes[1])
+plot_rmse(rmse_uk, rmse_uk_wd, 'RMSE - UK', 'rmse_uk', axes[2])
+plot_rmse(rmse_us, rmse_us_wd, 'RMSE - US', 'rmse_us', axes[3])
+plt.savefig('rmse.png')
+plt.show()
+
+# Plotting residuals
+fig, ax = plt.subplots(nrows=4, ncols=2)
+ax[0,0].plot(res_no.resid[1:])
+ax[0,1].hist(res_no.resid[1:])
+
+ax[1,0].plot(res_dk.resid[1:])
+ax[1,1].hist(res_dk.resid[1:])
+
+ax[2,0].plot(res_uk.resid[1:])
+ax[2,1].hist(res_uk.resid[1:])
+
+ax[3,0].plot(res_us.resid[1:])
+ax[3,1].hist(res_us.resid[1:])
+
+ax[0,0].set_title('Norway')
+ax[1,0].set_title('Denmark')
+ax[2,0].set_title('UK')
+ax[3,0].set_title('US')
+
+ax[0,0].tick_params(axis='x', labelrotation=25)
+ax[1,0].tick_params(axis='x', labelrotation=25)
+ax[2,0].tick_params(axis='x', labelrotation=25)
+ax[3,0].tick_params(axis='x', labelrotation=25)
+plt.suptitle('Residuals', fontweight='bold')
+plt.savefig('residuals.png')
+plt.show()
+
+# Plotting residuals of without differencing
+fig, ax = plt.subplots(nrows=4, ncols=2)
+ax[0,0].plot(res_no_without_diff.resid[1:])
+ax[0,1].hist(res_no_without_diff.resid[1:])
+
+ax[1,0].plot(res_dk_without_diff.resid[1:])
+ax[1,1].hist(res_dk_without_diff.resid[1:])
+
+ax[2,0].plot(res_uk_without_diff.resid[1:])
+ax[2,1].hist(res_uk_without_diff.resid[1:])
+
+ax[3,0].plot(res_us_without_diff.resid[1:])
+ax[3,1].hist(res_us_without_diff.resid[1:])
+
+ax[0,0].set_title('Norway')
+ax[1,0].set_title('Denmark')
+ax[2,0].set_title('UK')
+ax[3,0].set_title('US')
+
+ax[0,0].tick_params(axis='x', labelrotation=25)
+ax[1,0].tick_params(axis='x', labelrotation=25)
+ax[2,0].tick_params(axis='x', labelrotation=25)
+ax[3,0].tick_params(axis='x', labelrotation=25)
+plt.suptitle('Residuals (d=0)', fontweight='bold')
+plt.savefig('residuals_wd.png')
+plt.show()
 
 
 # TODO Etter at alt annet (inkludert andre ML-modeller) er ferdig: Predikér resten av 2020 (om det er plass)
