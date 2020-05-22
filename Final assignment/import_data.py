@@ -11,10 +11,10 @@ import matplotlib.pyplot as plt
 from datetime import datetime, date
 from statsmodels.tsa.stattools import adfuller
 from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
-from statsmodels.tsa.seasonal import STL
 from statsmodels.tsa.seasonal import seasonal_decompose
 from statsmodels.tsa.statespace.sarimax import SARIMAX
 from pmdarima.arima import auto_arima
+from pmdarima.arima.utils import ndiffs, nsdiffs
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import roc_auc_score, confusion_matrix, plot_confusion_matrix
 import warnings
@@ -137,23 +137,25 @@ def plot_decomposition(df, column_index, plot_title):
         raise Exception('Could not plot {}'.format(plot_title))
 
 # Function to plot autocorrelation
-def plot_autocorrelation(dict, column_index):
+def plot_autocorrelation(dict, column_index, filename, suptitle):
     print('ADFuller test to check for stationarity (H0 is that there is non-stationarity):')
     for i in range(len(list(dict.values()))):
         df = list(dict.values())[i].dropna()
         p_val = adfuller(df.iloc[:, column_index])[1] # ADFuller test
+        ndiff = ndiffs(df.iloc[:,column_index], test='adf')
 
         title = list(dict.keys())[i]
 
         plot_pacf(df.iloc[:,column_index], ax=axes[0,i], title=title)
         axes[0,i].text(x=4, y=0.85, s='ADFuller: {}'.format(round(p_val,4)), fontdict={'color':'#8b0000'})
+        axes[0,i].text(x=4, y=0.65, s='Ndiffs: {}'.format(ndiff), fontdict={'color':'black'})
         plot_acf(df.iloc[:,column_index], ax=axes[1,i], title=title)
 
         # Print ADFuller test
         print('P-value of {c}: {p}'.format(c=title, p=p_val))
-
-    fig.align_ylabels()
-    plt.savefig('plots/pmi_pacf.png')
+    plt.suptitle(suptitle)
+    #fig.align_ylabels()
+    plt.savefig('plots/{}.png'.format(filename))
     plt.show()
 
 # Function to plot forecasts
@@ -401,9 +403,9 @@ el_us = el_us[['month', 'usd_per_MWh']]
 el_dk = el_dk[['month', 'usd_per_MWh', 'eur_per_MWh']]
 
 el_dict = {'Norway':el_no,
+           'Denmark':el_dk,
            'UK':el_uk,
-           'US':el_us,
-           'Denmark':el_dk}
+           'US':el_us}
 # In a single plot
 start_date = np.datetime64(date(2005, 1, 1))
 fig, ax = plt.subplots(figsize=(8,5))
@@ -463,32 +465,32 @@ Investigating autocorrelation for all time series, should any of the series be s
 # Plotting ACF and PACF
 '''
 # PMI
-fig, axes = plt.subplots(ncols=len(pmi_dict.keys()), nrows=2, figsize=(4.5,9))
-plt.subplots_adjust(hspace=0.4)
+fig, axes = plt.subplots(ncols=len(pmi_dict.keys()), nrows=2, figsize=(10,5))
+plt.subplots_adjust(hspace=0.4, wspace=0.4)
 title_size = 15
 title_type = 'bold'
 ylabel_size = 12
 
-plot_autocorrelation(pmi_dict, 1)
+plot_autocorrelation(pmi_dict, 1, 'pmi_pacf', 'PMI')
 
 # Electricity
-fig, axes = plt.subplots(nrows=4, ncols=2, figsize=(16,32))
-plt.subplots_adjust(hspace=0.4)
+fig, axes = plt.subplots(ncols=len(el_dict.keys()), nrows=2, figsize=(10,5))
+fig.subplots_adjust(hspace=0.4, wspace=0.4)
 title_size = 15
 title_type = 'bold'
 ylabel_size = 12
-plot_autocorrelation(el_dict, 1)
+plot_autocorrelation(el_dict, 1, 'el_pacf', 'Electricity')
 
 # Oil
 oil_dict = {'Brent':brent,
             'WTI': wti}
 
-fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(16,32))
-plt.subplots_adjust(hspace=0.4)
+fig, axes = plt.subplots(nrows=2, ncols=len(oil_dict.keys()), figsize=(7,5))
+plt.subplots_adjust(hspace=0.4, wspace=0.4)
 title_size = 15
 title_type = 'bold'
 ylabel_size = 12
-plot_autocorrelation(oil_dict, 1)
+plot_autocorrelation(oil_dict, 1, 'oil_pacf', 'Oil')
 
 '''
 Preparing data for modelling
@@ -571,8 +573,6 @@ results_auto = arima_auto.fit(maxiter=100, disp=0)
 forecast_plot(pmi_no, arima_auto, forecasts=12, y_label="PMI")
 
 # Norway with exogeneous variables
-from pmdarima.arima.utils import ndiffs
-from pmdarima.arima.utils import nsdiffs
 
 # Formally prove that only one differencing is needed
 df_no = df_no.dropna()
@@ -621,11 +621,12 @@ df_no_train = df_no.iloc[:-n_test_obs,:]
 df_no_test = df_no.iloc[-n_test_obs:,:]
 exog_no_train = df_no_train.drop(['dir', 'eur_per_MWh', 'pmi', 'usd_per_MWh', 'usd_per_barrel_x', 'usd_per_barrel_y'], axis=1)
 exog_no_test = df_no_test.drop(['dir', 'eur_per_MWh', 'pmi', 'usd_per_MWh', 'usd_per_barrel_x', 'usd_per_barrel_y'], axis=1)
-#model_no = auto_arima(df_no_train.pmi, m = 12, exogenous=exog_no_train.to_numpy(),
+#model_no = auto_arima(df_no_train.pmi, m = 12, exogenous=exog_no_train.to_numpy(), d=1,
 #                             max_order = None, max_p = 5, max_q = 5, max_d = 4, max_P = 3, max_Q = 5, max_D = 4,
 #                             maxiter = 50, alpha = 0.05, n_jobs = -1, trend = 'ct', information_criterion = 'aic')
 #model_no.summary()
-arima_no = SARIMAX(df_no_train.pmi, order=(2,0,1), seasonal_order=(2,0,2,12), exog=exog_no_train.astype('float'))
+arima_no_without_diff = SARIMAX(df_no_train.pmi, order=(2,0,1), seasonal_order=(2,0,2,12), exog=exog_no_train.astype('float'))
+arima_no = SARIMAX(df_no_train.pmi, order=(2,1,2), seasonal_order=(1,0,1,12), exog=exog_no_train.astype('float'))
 res_no = arima_no.fit(maxiter=100, disp=0)
 f = res_no.get_forecast(n_test_obs, exog=exog_no_test.iloc[-n_test_obs:,:].astype('float')).summary_frame()
 
@@ -635,11 +636,12 @@ df_dk_train = df_dk.iloc[:-n_test_obs,:]
 df_dk_test = df_dk.iloc[-n_test_obs:,:]
 exog_dk_train = df_dk_train.drop(['dir', 'eur_per_MWh', 'pmi', 'usd_per_MWh', 'usd_per_barrel_x', 'usd_per_barrel_y'], axis=1)
 exog_dk_test = df_dk_test.drop(['dir', 'eur_per_MWh', 'pmi', 'usd_per_MWh', 'usd_per_barrel_x', 'usd_per_barrel_y'], axis=1)
-#model_dk = auto_arima(df_dk_train.pmi, m = 12, exogenous=exog_dk_train.to_numpy(),
+#model_dk = auto_arima(df_dk_train.pmi, m = 12, exogenous=exog_dk_train.to_numpy(), d=1,
 #                             max_order = None, max_p = 5, max_q = 5, max_d = 4, max_P = 3, max_Q = 5, max_D = 4,
 #                             maxiter = 50, alpha = 0.05, n_jobs = -1, trend = 'ct', information_criterion = 'aic')
 #model_dk.summary()
-arima_dk = SARIMAX(df_dk_train.pmi, order=(1,0,1), seasonal_order=(0,0,1,12), exog=exog_dk_train.astype('float'))
+arima_dk_without_diff = SARIMAX(df_dk_train.pmi, order=(1,0,1), seasonal_order=(0,0,1,12), exog=exog_dk_train.astype('float'))
+arima_dk = SARIMAX(df_dk_train.pmi, order=(0,1,1), seasonal_order=(0,0,1,12), exog=exog_dk_train.astype('float'))
 res_dk = arima_dk.fit(maxiter=100, disp=0)
 f = res_dk.get_forecast(n_test_obs, exog=exog_dk_test.iloc[-n_test_obs:,:].astype('float')).summary_frame()
 
@@ -649,11 +651,12 @@ df_uk_train = df_uk.iloc[:-n_test_obs,:]
 df_uk_test = df_uk.iloc[-n_test_obs:,:]
 exog_uk_train = df_uk_train.drop(['dir', 'monthyear', 'gbp_per_MWh', 'pmi', 'usd_per_MWh', 'usd_per_barrel_x', 'usd_per_barrel_y'], axis=1)
 exog_uk_test = df_uk_test.drop(['dir', 'monthyear', 'gbp_per_MWh', 'pmi', 'usd_per_MWh', 'usd_per_barrel_x', 'usd_per_barrel_y'], axis=1)
-#model_uk = auto_arima(df_uk_train.pmi, m = 12, exogenous=exog_uk_train.to_numpy(),
+#model_uk = auto_arima(df_uk_train.pmi, m = 12, exogenous=exog_uk_train.to_numpy(), d=1,
 #                             max_order = None, max_p = 5, max_q = 5, max_d = 4, max_P = 3, max_Q = 5, max_D = 4,
 #                             maxiter = 50, alpha = 0.05, n_jobs = -1, trend = 'ct', information_criterion = 'aic')
 #model_uk.summary()
-arima_uk = SARIMAX(df_uk_train.pmi, order=(1,0,2), exog=exog_uk_train.astype('float'))
+arima_uk_without_diff = SARIMAX(df_uk_train.pmi, order=(1,0,2), exog=exog_uk_train.astype('float'))
+arima_uk = SARIMAX(df_uk_train.pmi, order=(2,1,2), exog=exog_uk_train.astype('float'))
 res_uk = arima_uk.fit(maxiter=100, disp=0)
 f = res_uk.get_forecast(n_test_obs, exog=exog_uk_test.iloc[-n_test_obs:,:].astype('float')).summary_frame()
 f.index = df_uk_test.index
@@ -665,11 +668,12 @@ df_us_train = df_us.iloc[:-n_test_obs,:]
 df_us_test = df_us.iloc[-n_test_obs:,:]
 exog_us_train = df_us_train.drop(['dir', 'pmi', 'usd_per_MWh', 'usd_per_barrel_x', 'usd_per_barrel_y'], axis=1)
 exog_us_test = df_us_test.drop(['dir', 'pmi', 'usd_per_MWh', 'usd_per_barrel_x', 'usd_per_barrel_y'], axis=1)
-#model_us = auto_arima(df_us_train.pmi, m = 12, exogenous=exog_us_train.to_numpy(),
-#                             max_order = None, max_p = 5, max_q = 5, max_d = 4, max_P = 3, max_Q = 5, max_D = 4,
-#                             maxiter = 50, alpha = 0.05, n_jobs = -1, trend = 'ct', information_criterion = 'aic')
-#model_us.summary()
-arima_us = SARIMAX(df_us_train.pmi, order=(1,0,0), seasonal_order=(0,0,1,12), exog=exog_us_train.astype('float'))
+model_us = auto_arima(df_us_train.pmi, m = 12, exogenous=exog_us_train.to_numpy(), d=1,
+                             max_order = None, max_p = 5, max_q = 5, max_d = 4, max_P = 3, max_Q = 5, max_D = 4,
+                             maxiter = 50, alpha = 0.05, n_jobs = -1, trend = 'ct', information_criterion = 'aic')
+model_us.summary()
+arima_us_without_diff = SARIMAX(df_us_train.pmi, order=(1,0,0), seasonal_order=(0,0,1,12), exog=exog_us_train.astype('float'))
+arima_us = SARIMAX(df_us_train.pmi, order=(0,1,0), seasonal_order=(0,0,1,12), exog=exog_us_train.astype('float'))
 res_us = arima_us.fit(maxiter=100, disp=0)
 f = res_us.get_forecast(n_test_obs, exog=exog_us_test.iloc[-n_test_obs:,:].astype('float')).summary_frame()
 f.index = df_us_test.index
