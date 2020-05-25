@@ -668,10 +668,11 @@ df.at['aic', 'Denmark'] = res_dk.info_criteria('aic')
 df.at['aic', 'UK'] = res_uk.info_criteria('aic')
 df.at['aic', 'US'] = res_us.info_criteria('aic')
 
-df.at['aic', 'Norway'] = res_no.info_criteria('aic')
-df.at['aic', 'Denmark'] = res_dk.info_criteria('aic')
-df.at['aic', 'UK'] = res_uk.info_criteria('aic')
-df.at['aic', 'US'] = res_us.info_criteria('aic')
+df.at['ARIMA order', 'Norway'] = '{}{}'.format(arima_no.order, arima_no.seasonal_order)
+df.at['ARIMA order', 'Denmark'] = '{}{}'.format(arima_dk.order, arima_dk.seasonal_order)
+df.at['ARIMA order', 'UK'] = '{}{}'.format(arima_uk.order, arima_uk.seasonal_order)
+df.at['ARIMA order', 'US'] = '{}{}'.format(arima_us.order, arima_us.seasonal_order)
+print(df.to_string())
 
 
 ## Plotting multiple forecasts
