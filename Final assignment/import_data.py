@@ -639,6 +639,40 @@ arima_us = SARIMAX(df_us_train.pmi, order=(0,1,0), seasonal_order=(0,0,1,12), ex
 res_us = arima_us.fit(maxiter=100, disp=0)
 res_us_without_diff = arima_us_without_diff.fit(maxiter=100, disp=0)
 
+# Creating summary table for coefficients and p-values
+res_dict = {'Norway':res_no, 'Denmark':res_dk, 'UK':res_uk, 'US':res_us}
+
+names = []
+coefs = []
+cntry = []
+for i in range(len(res_dict.values())):
+    res = list(res_dict.values())[i]
+    tab = res.summary().tables[1]
+    country = list(res_dict.keys())[i]
+    for row in tab[1:]:
+        name = str(row[0])
+        coef = float(str(row[1]))
+        pval = float(str(row[4]))
+
+        names.append(name)
+        coefs.append('{} ({})'.format(coef, pval))
+        cntry.append(country)
+
+
+df_long = pd.DataFrame(data={'names':names, 'coefs':coefs, 'country':cntry})
+df_unsorted = pd.pivot(df_long, values='coefs', columns='country', index='names')
+df = df_unsorted.reindex(index=df_long['names']).iloc[:13,:]
+df.index.name = ''
+df.at['aic', 'Norway'] = res_no.info_criteria('aic')
+df.at['aic', 'Denmark'] = res_dk.info_criteria('aic')
+df.at['aic', 'UK'] = res_uk.info_criteria('aic')
+df.at['aic', 'US'] = res_us.info_criteria('aic')
+
+df.at['aic', 'Norway'] = res_no.info_criteria('aic')
+df.at['aic', 'Denmark'] = res_dk.info_criteria('aic')
+df.at['aic', 'UK'] = res_uk.info_criteria('aic')
+df.at['aic', 'US'] = res_us.info_criteria('aic')
+
 
 ## Plotting multiple forecasts
 def plot_multiple_forecast(res, res_wd, train_set, test_set, exog_test, title):
