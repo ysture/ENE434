@@ -5,6 +5,7 @@ prices in Norway, Denmark, UK and US.
 '''
 import pandas as pd
 import numpy as np
+import math
 from tabula import read_pdf
 import os
 import matplotlib.pyplot as plt
@@ -17,7 +18,7 @@ from pmdarima.arima import auto_arima
 import matplotlib.lines as mlines
 from pmdarima.arima.utils import ndiffs, nsdiffs
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import roc_auc_score, confusion_matrix, plot_confusion_matrix
+from sklearn.metrics import roc_auc_score, confusion_matrix, plot_confusion_matrix, accuracy_score
 import warnings
 from pandas.core.common import SettingWithCopyWarning
 warnings.simplefilter(action="ignore", category=SettingWithCopyWarning)
@@ -768,7 +769,7 @@ plot_rmse(rmse_no, rmse_no_wd, 'RMSE - Norway', 'rmse_no', axes[0])
 plot_rmse(rmse_dk, rmse_dk_wd, 'RMSE - Denmark', 'rmse_dk', axes[1])
 plot_rmse(rmse_uk, rmse_uk_wd, 'RMSE - UK', 'rmse_uk', axes[2])
 plot_rmse(rmse_us, rmse_us_wd, 'RMSE - US', 'rmse_us', axes[3])
-plt.savefig('rmse.png')
+plt.savefig('plots/rmse.png')
 plt.show()
 
 # Plotting residuals
@@ -795,7 +796,7 @@ ax[1,0].tick_params(axis='x', labelrotation=25)
 ax[2,0].tick_params(axis='x', labelrotation=25)
 ax[3,0].tick_params(axis='x', labelrotation=25)
 plt.suptitle('Residuals', fontweight='bold')
-plt.savefig('residuals.png')
+plt.savefig('plots/residuals.png')
 plt.show()
 
 # Plotting residuals of without differencing
@@ -822,107 +823,84 @@ ax[1,0].tick_params(axis='x', labelrotation=25)
 ax[2,0].tick_params(axis='x', labelrotation=25)
 ax[3,0].tick_params(axis='x', labelrotation=25)
 plt.suptitle('Residuals (d=0)', fontweight='bold')
-plt.savefig('residuals_wd.png')
+plt.savefig('plots/residuals_wd.png')
 plt.show()
 
 
-# TODO Etter at alt annet (inkludert andre ML-modeller) er ferdig: Predikér resten av 2020 (om det er plass)
 
 '''
 Developing Random Forest model to predict if PMI will go up or down based on lagged oil price and electricity variables
 '''
 
+
+# Plot random forest performance with varying m
+def accuracy_column(df, n_test_obs):
+    accuracy_list = []
+    for i in range(6):
+        train = df.iloc[:-n_test_obs,:]
+        test = df.iloc[-n_test_obs:,:]
+        exog_train = train[['el_lag_1', 'el_lag_2', 'brent_lag_1', 'brent_lag_2', 'wti_lag_1', 'wti_lag_2']]
+        exog_test = test[['el_lag_1', 'el_lag_2', 'brent_lag_1', 'brent_lag_2', 'wti_lag_1', 'wti_lag_2']]
+
+        rf = RandomForestClassifier(n_estimators=128, bootstrap=True, max_features=i+1, random_state=86)
+        rf.fit(X=exog_train, y=train.dir)
+        preds = rf.predict(exog_test)
+
+        accuracy = accuracy_score(y_true=test.dir, y_pred=preds)
+        accuracy_list.append(accuracy)
+    return accuracy_list
+
+# Model Accuracy, how often is the classifier correct?
+acc_no = accuracy_column(df_no, 24)
+acc_dk = accuracy_column(df_dk, 24)
+acc_uk = accuracy_column(df_uk, 24)
+acc_us = accuracy_column(df_us, 24)
+
+fig, ax = plt.subplots()
+x_axis = range(1, 7)
+ax.plot(x_axis, acc_no, '-.o', label='Norway')
+ax.plot(x_axis, acc_dk, '-.o', label='Denmark')
+ax.plot(x_axis, acc_uk, '-.o', label='UK')
+ax.plot(x_axis, acc_us, '-.o', label='US')
+plt.axvline(x=math.sqrt(6), linestyle='--', color='gray', linewidth=1)
+ax.set_ylabel('Out-of-sample accuracy')
+ax.set_xlabel('Predictor subset')
+ax.set_title('Out-of-sample accuracy with differing m', fontdict={'size':18})
+plt.legend(loc='best')
+plt.savefig('plots/oos_accuracy.png')
+plt.show()
+
 ### Norway
-model = RandomForestClassifier(n_estimators=100, bootstrap=True, max_features=None, random_state=86)
-model.fit(X=exog_no_train, y=df_no_train.dir)
+rf_no = RandomForestClassifier(n_estimators=128, bootstrap=True, max_features='auto', random_state=86)
+rf_no.fit(X=exog_no_train, y=df_no_train.dir)
 
-preds = model.predict(exog_no_test)
-model.predict_proba(exog_no_test) # probabilities calculated by the Random Forest model
-conf_mat = confusion_matrix(y_true=df_no_test.dir, y_pred=preds, labels=[0,1])
-
-# Confusion matrix for test set
-plot_confusion_matrix(model, exog_no_test, df_no_test.dir)
-plt.show()
-
-# Confusion matrix for training set
-plot_confusion_matrix(model, exog_no_train, df_no_train.dir)
-model.predict_proba(exog_no_train) # probabilities calculated by the Random Forest model
-plt.show()
-
-# Extract feature importances
-fi = pd.DataFrame({'feature': list(exog_no_test.columns),
-                   'importance': model.feature_importances_}). \
-    sort_values('importance', ascending = False)
-fi.head()
+preds_no = rf_no.predict(exog_no_test)
+rf_no.predict_proba(exog_no_test) # probabilities calculated by the Random Forest model
+conf_mat_no = confusion_matrix(y_true=df_no_test.dir, y_pred=preds_no, labels=[0,1])
 
 ### Denmark
-model = RandomForestClassifier(n_estimators=100, bootstrap=True, max_features=None, random_state=86)
-model.fit(X=exog_dk_train, y=df_dk_train.dir)
+rf_dk = RandomForestClassifier(n_estimators=128, bootstrap=True, max_features='auto', random_state=86)
+rf_dk.fit(X=exog_dk_train, y=df_dk_train.dir)
 
-preds = model.predict(exog_dk_test)
-model.predict_proba(exog_dk_test) # probabilities calculated by the Random Forest model
-conf_mat = confusion_matrix(y_true=df_dk_test.dir, y_pred=preds, labels=[0,1])
-
-# Confusion matrix for test set
-plot_confusion_matrix(model, exog_dk_test, df_dk_test.dir)
-plt.show()
-
-# Confusion matrix for training set
-plot_confusion_matrix(model, exog_dk_train, df_dk_train.dir)
-model.predict_proba(exog_dk_train) # probabilities calculated by the Random Forest model
-plt.show()
-
-# Extract feature importances
-fi = pd.DataFrame({'feature': list(exog_dk_test.columns),
-                   'importance': model.feature_importances_}). \
-    sort_values('importance', ascending = False)
-fi.head()
+preds_dk = rf_dk.predict(exog_dk_test)
+rf_dk.predict_proba(exog_dk_test) # probabilities calculated by the Random Forest model
+conf_mat_dk = confusion_matrix(y_true=df_dk_test.dir, y_pred=preds_dk, labels=[0,1])
 
 ### UK
-model = RandomForestClassifier(n_estimators=100, bootstrap=True, max_features=None, random_state=86)
-model.fit(X=exog_uk_train, y=df_uk_train.dir)
+rf_uk = RandomForestClassifier(n_estimators=128, bootstrap=True, max_features='auto', random_state=86)
+rf_uk.fit(X=exog_uk_train, y=df_uk_train.dir)
 
-preds = model.predict(exog_uk_test)
-model.predict_proba(exog_uk_test) # probabilities calculated by the Random Forest model
-conf_mat = confusion_matrix(y_true=df_uk_test.dir, y_pred=preds, labels=[0,1])
-
-# Confusion matrix for test set
-plot_confusion_matrix(model, exog_uk_test, df_uk_test.dir)
-plt.show()
-
-# Confusion matrix for training set
-plot_confusion_matrix(model, exog_uk_train, df_uk_train.dir)
-model.predict_proba(exog_uk_train) # probabilities calculated by the Random Forest model
-plt.show()
-
-# Extract feature importances
-fi = pd.DataFrame({'feature': list(exog_uk_test.columns),
-                   'importance': model.feature_importances_}). \
-    sort_values('importance', ascending = False)
-fi.head()
+preds_uk = rf_uk.predict(exog_uk_test)
+rf_uk.predict_proba(exog_uk_test) # probabilities calculated by the Random Forest model
+conf_mat_uk = confusion_matrix(y_true=df_uk_test.dir, y_pred=preds_uk, labels=[0,1])
 
 ### US
-model = RandomForestClassifier(n_estimators=100, bootstrap=True, max_features=None, random_state=86)
-model.fit(X=exog_us_train, y=df_us_train.dir)
+rf_us = RandomForestClassifier(n_estimators=128, bootstrap=True, max_features='auto', random_state=86)
+rf_us.fit(X=exog_us_train, y=df_us_train.dir)
 
-preds = model.predict(exog_us_test)
-model.predict_proba(exog_us_test) # probabilities calculated by the Random Forest model
-conf_mat = confusion_matrix(y_true=df_us_test.dir, y_pred=preds, labels=[0,1])
-
-# Confusion matrix for test set
-plot_confusion_matrix(model, exog_us_test, df_us_test.dir)
-plt.show()
-
-# Confusion matrix for training set
-plot_confusion_matrix(model, exog_us_train, df_us_train.dir)
-model.predict_proba(exog_us_train) # probabilities calculated by the Random Forest model
-plt.show()
-
-# Extract feature importances
-fi = pd.DataFrame({'feature': list(exog_us_test.columns),
-                   'importance': model.feature_importances_}). \
-    sort_values('importance', ascending = False)
-fi.head()
+preds_us = rf_us.predict(exog_us_test)
+rf_us.predict_proba(exog_us_test) # probabilities calculated by the Random Forest model
+conf_mat_us = confusion_matrix(y_true=df_us_test.dir, y_pred=preds_us, labels=[0,1])
 
 
 # TODO: Compare results to random walk/naïve models to see if the models are better than guessing for prediction.
