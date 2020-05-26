@@ -18,7 +18,7 @@ from pmdarima.arima import auto_arima
 import matplotlib.lines as mlines
 from pmdarima.arima.utils import ndiffs, nsdiffs
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import roc_auc_score, confusion_matrix, plot_confusion_matrix, accuracy_score
+from sklearn.metrics import roc_auc_score, confusion_matrix, plot_confusion_matrix, accuracy_score, mean_squared_error
 import warnings
 from pandas.core.common import SettingWithCopyWarning
 warnings.simplefilter(action="ignore", category=SettingWithCopyWarning)
@@ -208,6 +208,21 @@ def forecast_plot(dataframe, arima_mod, forecasts=12, outer_interval=0.95, inner
     plt.ylabel(y_label)
     plt.xlabel(x_label)
     plt.show()
+
+def plot_multiple_forecast(res, res_wd, train_set, test_set, exog_test, title, ax):
+    n_test_obs = len(test_set)
+    preds = res.get_forecast(n_test_obs, exog=exog_test.astype('float')).summary_frame()['mean']
+    preds_wd = res_wd.get_forecast(n_test_obs, exog=exog_test.astype('float')).summary_frame()['mean']
+    naive = [train_set[-1]]*len(preds)
+
+    # Plotting
+    ax.plot(train_set, label='Training set', color='black')
+    ax.plot(preds, label='Forecast (d=1)', color='blue')
+    ax.plot(preds_wd, label='Forecast (d=0)', color='red')
+    ax.plot(test_set, label='Test set', color='orange', linestyle='--')
+    ax.plot(preds.index, naive, label='Naïve', color='gray', linestyle='--')
+    ax.set_ylabel('PMI')
+    ax.set_title(title, fontsize=14)
 
 
 ### PMI
@@ -676,30 +691,6 @@ df.at['ARIMA order', 'US'] = '{}{}'.format(arima_us.order, arima_us.seasonal_ord
 print(df.to_string())
 
 
-## Plotting multiple forecasts
-def plot_multiple_forecast(res, res_wd, train_set, test_set, exog_test, title):
-    n_test_obs = len(test_set)
-    preds = res.get_forecast(n_test_obs, exog=exog_test.astype('float')).summary_frame()['mean']
-    preds_wd = res_wd.get_forecast(n_test_obs, exog=exog_test.astype('float')).summary_frame()['mean']
-
-    # Plotting
-    fig, ax = plt.subplots(figsize=(10,5))
-    ax.plot(train_set, label='Training set', color='black')
-    ax.plot(preds, label='Forecast (d=1)', color='blue')
-    ax.plot(preds_wd, label='Forecast (d=0)', color='red')
-    ax.plot(test_set, label='Test set', color='orange', linestyle='--')
-    ax.set_ylabel('PMI')
-    ax.set_title(title, fontsize=18)
-    plt.legend(loc='best')
-    plt.show()
-
-# Plotting forecasts
-plot_multiple_forecast(res_no, res_no_without_diff, df_no_train.pmi, df_no_test.pmi, exog_no_test, 'Norway')
-plot_multiple_forecast(res_dk, res_dk_without_diff, df_dk_train.pmi, df_dk_test.pmi, exog_dk_test, 'Denmark')
-plot_multiple_forecast(res_uk, res_uk_without_diff, df_uk_train.pmi, df_uk_test.pmi, exog_uk_test, 'UK')
-plot_multiple_forecast(res_us, res_us_without_diff, df_us_train.pmi, df_us_test.pmi, exog_us_test, 'US')
-
-
 # Calculating RMSE
 rmse_no =(((res_no.get_forecast(n_test_obs, exog=exog_no_test.astype('float')).summary_frame()['mean']-df_no_test.pmi)**2).mean())**0.5
 rmse_dk =(((res_dk.get_forecast(n_test_obs, exog=exog_dk_test.astype('float')).summary_frame()['mean']-df_dk_test.pmi)**2).mean())**0.5
@@ -711,6 +702,17 @@ rmse_dk_wd =(((res_dk_without_diff.get_forecast(n_test_obs, exog=exog_dk_test.as
 rmse_uk_wd =(((res_uk_without_diff.get_forecast(n_test_obs, exog=exog_uk_test.astype('float')).summary_frame()['mean']-df_uk_test.pmi)**2).mean())**0.5
 rmse_us_wd =(((res_us_without_diff.get_forecast(n_test_obs, exog=exog_us_test.astype('float')).summary_frame()['mean']-df_us_test.pmi)**2).mean())**0.5
 
+rmse_no_naive = ((([df_no_train.pmi[-1]]*n_test_obs-df_no_test.pmi)**2).mean())**0.5
+rmse_dk_naive = ((([df_dk_train.pmi[-1]]*n_test_obs-df_dk_test.pmi)**2).mean())**0.5
+rmse_uk_naive = ((([df_uk_train.pmi[-1]]*n_test_obs-df_uk_test.pmi)**2).mean())**0.5
+rmse_us_naive = ((([df_us_train.pmi[-1]]*n_test_obs-df_us_test.pmi)**2).mean())**0.5
+
+rmse = [rmse_no, rmse_dk, rmse_uk, rmse_us]
+rmse_wd = [rmse_no_wd, rmse_dk_wd, rmse_uk_wd, rmse_us_wd]
+rmse_naive = [rmse_no_naive, rmse_dk_naive, rmse_uk_naive, rmse_us_naive]
+
+rmse_df = pd.DataFrame(data={'d=1':rmse, 'd=0':rmse_wd, 'naive':rmse_naive})
+rmse_df.index = ['Norway', 'Denmark', 'UK', 'US']
 
 def rmse_column(df, n_test_obs, order, seasonal_order):
 
@@ -773,7 +775,8 @@ plt.savefig('plots/rmse.png')
 plt.show()
 
 # Plotting residuals
-fig, ax = plt.subplots(nrows=4, ncols=2)
+fig, ax = plt.subplots(nrows=4, ncols=2, figsize=(10,6))
+plt.subplots_adjust(hspace=0.8)
 ax[0,0].plot(res_no.resid[1:])
 ax[0,1].hist(res_no.resid[1:])
 
@@ -791,16 +794,16 @@ ax[1,0].set_title('Denmark')
 ax[2,0].set_title('UK')
 ax[3,0].set_title('US')
 
-ax[0,0].tick_params(axis='x', labelrotation=25)
-ax[1,0].tick_params(axis='x', labelrotation=25)
-ax[2,0].tick_params(axis='x', labelrotation=25)
-ax[3,0].tick_params(axis='x', labelrotation=25)
+ax[0,0].tick_params(axis='x', labelrotation=0)
+ax[1,0].tick_params(axis='x', labelrotation=0)
+ax[2,0].tick_params(axis='x', labelrotation=0)
+ax[3,0].tick_params(axis='x', labelrotation=0)
 plt.suptitle('Residuals', fontweight='bold')
 plt.savefig('plots/residuals.png')
 plt.show()
 
 # Plotting residuals of without differencing
-fig, ax = plt.subplots(nrows=4, ncols=2)
+fig, ax = plt.subplots(nrows=4, ncols=2, figsize=(8,8))
 ax[0,0].plot(res_no_without_diff.resid[1:])
 ax[0,1].hist(res_no_without_diff.resid[1:])
 
@@ -826,12 +829,47 @@ plt.suptitle('Residuals (d=0)', fontweight='bold')
 plt.savefig('plots/residuals_wd.png')
 plt.show()
 
-
-
+# Plotting forecasts
+fig, ax = plt.subplots(figsize=(12,12), ncols=1, nrows=4)
+plt.subplots_adjust(hspace=0.4)
+plot_multiple_forecast(res_no, res_no_without_diff, df_no_train.pmi, df_no_test.pmi, exog_no_test, 'Norway', ax[0])
+plot_multiple_forecast(res_dk, res_dk_without_diff, df_dk_train.pmi, df_dk_test.pmi, exog_dk_test, 'Denmark', ax[1])
+plot_multiple_forecast(res_uk, res_uk_without_diff, df_uk_train.pmi, df_uk_test.pmi, exog_uk_test, 'UK', ax[2])
+plot_multiple_forecast(res_us, res_us_without_diff, df_us_train.pmi, df_us_test.pmi, exog_us_test, 'US', ax[3])
+plt.suptitle('Forecasts', fontweight='bold', fontsize=18)
+handles, labels = ax[0].get_legend_handles_labels()
+lg = ax[3].legend(handles, labels, ncol=5, loc='lower center', bbox_to_anchor=(0.5,-0.4))
+plt.savefig('plots/forecasts.png', bbox_extra_artists =(lg,), bbox_inches='tight')
+plt.show()
 '''
 Developing Random Forest model to predict if PMI will go up or down based on lagged oil price and electricity variables
 '''
+# Creating new test sets
+n_test_obs = 48
 
+# Norway
+df_no_train = df_no.iloc[:-n_test_obs,:]
+df_no_test = df_no.iloc[-n_test_obs:,:]
+exog_no_train = df_no_train.drop(['dir', 'eur_per_MWh', 'pmi', 'usd_per_MWh', 'usd_per_barrel_x', 'usd_per_barrel_y'], axis=1)
+exog_no_test = df_no_test.drop(['dir', 'eur_per_MWh', 'pmi', 'usd_per_MWh', 'usd_per_barrel_x', 'usd_per_barrel_y'], axis=1)
+
+# Denmark
+df_dk_train = df_dk.iloc[:-n_test_obs,:]
+df_dk_test = df_dk.iloc[-n_test_obs:,:]
+exog_dk_train = df_dk_train.drop(['dir', 'eur_per_MWh', 'pmi', 'usd_per_MWh', 'usd_per_barrel_x', 'usd_per_barrel_y'], axis=1)
+exog_dk_test = df_dk_test.drop(['dir', 'eur_per_MWh', 'pmi', 'usd_per_MWh', 'usd_per_barrel_x', 'usd_per_barrel_y'], axis=1)
+
+# UK
+df_uk_train = df_uk.iloc[:-n_test_obs,:]
+df_uk_test = df_uk.iloc[-n_test_obs:,:]
+exog_uk_train = df_uk_train.drop(['dir', 'monthyear', 'gbp_per_MWh', 'pmi', 'usd_per_MWh', 'usd_per_barrel_x', 'usd_per_barrel_y'], axis=1)
+exog_uk_test = df_uk_test.drop(['dir', 'monthyear', 'gbp_per_MWh', 'pmi', 'usd_per_MWh', 'usd_per_barrel_x', 'usd_per_barrel_y'], axis=1)
+
+# US
+df_us_train = df_us.iloc[:-n_test_obs,:]
+df_us_test = df_us.iloc[-n_test_obs:,:]
+exog_us_train = df_us_train.drop(['dir', 'pmi', 'usd_per_MWh', 'usd_per_barrel_x', 'usd_per_barrel_y'], axis=1)
+exog_us_test = df_us_test.drop(['dir', 'pmi', 'usd_per_MWh', 'usd_per_barrel_x', 'usd_per_barrel_y'], axis=1)
 
 # Plot random forest performance with varying m
 def accuracy_column(df, n_test_obs):
@@ -878,6 +916,7 @@ preds_no = rf_no.predict(exog_no_test)
 rf_no.predict_proba(exog_no_test) # probabilities calculated by the Random Forest model
 conf_mat_no = confusion_matrix(y_true=df_no_test.dir, y_pred=preds_no, labels=[0,1])
 
+
 ### Denmark
 rf_dk = RandomForestClassifier(n_estimators=128, bootstrap=True, max_features='auto', random_state=86)
 rf_dk.fit(X=exog_dk_train, y=df_dk_train.dir)
@@ -902,5 +941,18 @@ preds_us = rf_us.predict(exog_us_test)
 rf_us.predict_proba(exog_us_test) # probabilities calculated by the Random Forest model
 conf_mat_us = confusion_matrix(y_true=df_us_test.dir, y_pred=preds_us, labels=[0,1])
 
+# Plotting confusion matrices
+fix, ax = plt.subplots(2,2)
+plt.subplots_adjust(hspace=0.4)
+plot_confusion_matrix(rf_no, X=exog_no_test, y_true=df_no_test.dir, ax=ax[0,0])
+plot_confusion_matrix(rf_dk, X=exog_dk_test, y_true=df_dk_test.dir, ax=ax[0,1])
+plot_confusion_matrix(rf_uk, X=exog_uk_test, y_true=df_uk_test.dir, ax=ax[1,0])
+plot_confusion_matrix(rf_us, X=exog_us_test, y_true=df_us_test.dir, ax=ax[1,1])
+ax[0,0].set_title('Norway')
+ax[0,1].set_title('Denmark')
+ax[1,0].set_title('UK')
+ax[1,1].set_title('US')
+plt.savefig('plots/conf_mat.png')
+plt.show()
 
 # TODO: Compare results to random walk/naïve models to see if the models are better than guessing for prediction.
