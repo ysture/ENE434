@@ -943,7 +943,7 @@ conf_mat_us = confusion_matrix(y_true=df_us_test.dir, y_pred=preds_us, labels=[0
 
 # Plotting confusion matrices
 fix, ax = plt.subplots(2,2)
-plt.subplots_adjust(hspace=0.4)
+plt.subplots_adjust(hspace=0.6)
 plot_confusion_matrix(rf_no, X=exog_no_test, y_true=df_no_test.dir, ax=ax[0,0])
 plot_confusion_matrix(rf_dk, X=exog_dk_test, y_true=df_dk_test.dir, ax=ax[0,1])
 plot_confusion_matrix(rf_uk, X=exog_uk_test, y_true=df_uk_test.dir, ax=ax[1,0])
@@ -955,4 +955,50 @@ ax[1,1].set_title('US')
 plt.savefig('plots/conf_mat.png')
 plt.show()
 
-# TODO: Compare results to random walk/naïve models to see if the models are better than guessing for prediction.
+## Feature importance
+# Norway
+fi_no = pd.DataFrame({'feature': list(exog_no_test.columns),
+                   'importance': rf_no.feature_importances_}). \
+    sort_values('importance', ascending = False)
+
+# Denmark
+fi_dk = pd.DataFrame({'feature': list(exog_dk_test.columns),
+                   'importance': rf_dk.feature_importances_}). \
+    sort_values('importance', ascending = False)
+
+# UK
+fi_uk = pd.DataFrame({'feature': list(exog_uk_test.columns),
+                   'importance': rf_uk.feature_importances_}). \
+    sort_values('importance', ascending = False)
+
+# US
+fi_us = pd.DataFrame({'feature': list(exog_us_test.columns),
+                   'importance': rf_us.feature_importances_}). \
+    sort_values('importance', ascending = False)
+
+# Plotting feature importance (in four plots)
+fig, ax = plt.subplots(2,2)
+plt.subplots_adjust(hspace=0.5)
+ax[0,0].barh(fi_no.feature, fi_no.importance, label='Norway')
+ax[0,1].barh(fi_dk.feature, fi_dk.importance, label='Denmark')
+ax[1,0].barh(fi_uk.feature, fi_uk.importance, label='UK')
+ax[1,1].barh(fi_us.feature, fi_us.importance, label='US')
+plt.legend(loc='best')
+plt.show()
+
+# Plotting feature importance (in one plot)
+fi_no.sort_values(by='feature', inplace=True)
+fi_dk.sort_values(by='feature', inplace=True)
+fi_uk.sort_values(by='feature', inplace=True)
+fi_us.sort_values(by='feature', inplace=True)
+fi_all = pd.DataFrame(data={'no': fi_no.importance, 'dk': fi_dk.importance,
+                            'uk': fi_uk.importance, 'us': fi_us.importance})
+fi_all.index=fi_no.feature
+
+ax=fi_all.plot.barh()
+ax.set_ylabel('Feature')
+ax.set_xlabel('Feature importance')
+ax.set_title('Feature importance', fontdict={'size':18})
+plt.tight_layout()
+plt.savefig('plots/feat_imp.png', )
+plt.show()
