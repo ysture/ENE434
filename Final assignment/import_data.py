@@ -224,6 +224,21 @@ def plot_multiple_forecast(res, res_wd, train_set, test_set, exog_test, title, a
     ax.set_ylabel('PMI')
     ax.set_title(title, fontsize=14)
 
+def accuracy_column(df, n_test_obs):
+    accuracy_list = []
+    for i in range(6):
+        train = df.iloc[:-n_test_obs,:]
+        test = df.iloc[-n_test_obs:,:]
+        exog_train = train[['el_lag_1', 'el_lag_2', 'brent_lag_1', 'brent_lag_2', 'wti_lag_1', 'wti_lag_2']]
+        exog_test = test[['el_lag_1', 'el_lag_2', 'brent_lag_1', 'brent_lag_2', 'wti_lag_1', 'wti_lag_2']]
+
+        rf = RandomForestClassifier(n_estimators=128, bootstrap=True, max_features=i+1, random_state=86)
+        rf.fit(X=exog_train, y=train.dir)
+        preds = rf.predict(exog_test)
+
+        accuracy = accuracy_score(y_true=test.dir, y_pred=preds)
+        accuracy_list.append(accuracy)
+    return accuracy_list
 
 ### PMI
 ## Norway
@@ -903,7 +918,7 @@ ax.plot(x_axis, acc_us, '-.o', label='US')
 plt.axvline(x=math.sqrt(6), linestyle='--', color='gray', linewidth=1)
 ax.set_ylabel('Out-of-sample accuracy')
 ax.set_xlabel('Predictor subset')
-ax.set_title('Out-of-sample accuracy with differing m', fontdict={'size':18})
+ax.set_title('Out-of-sample accuracy with differing m', fontdict={'size':16})
 plt.legend(loc='best')
 plt.savefig('plots/oos_accuracy.png')
 plt.show()
@@ -943,7 +958,7 @@ conf_mat_us = confusion_matrix(y_true=df_us_test.dir, y_pred=preds_us, labels=[0
 
 # Plotting confusion matrices
 fix, ax = plt.subplots(2,2)
-plt.subplots_adjust(hspace=0.6)
+plt.subplots_adjust(hspace=0.7)
 plot_confusion_matrix(rf_no, X=exog_no_test, y_true=df_no_test.dir, ax=ax[0,0])
 plot_confusion_matrix(rf_dk, X=exog_dk_test, y_true=df_dk_test.dir, ax=ax[0,1])
 plot_confusion_matrix(rf_uk, X=exog_uk_test, y_true=df_uk_test.dir, ax=ax[1,0])
